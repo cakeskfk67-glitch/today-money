@@ -71,6 +71,23 @@
         <ul id="expense-list" class="list"></ul>
         <p id="empty-msg" class="hint">아직 기록한 지출이 없어요.</p>
       </div>
+
+      <div class="card" id="stats-card">
+        <h2>이번 달 통계</h2>
+        <p id="stats-empty" class="hint">지출을 기록하면 통계가 나와요.</p>
+        <div id="stats-body">
+          <div class="stats-top">
+            <div><span>총 지출</span><strong id="stat-total">0원</strong></div>
+            <div><span>하루 평균</span><strong id="stat-average">0원</strong></div>
+            <div><span>가장 많이 쓴 날</span><strong id="stat-maxday">-</strong></div>
+          </div>
+          <h3>카테고리별</h3>
+          <ul id="cat-stats" class="cat-list"></ul>
+          <h3>일별 지출</h3>
+          <div id="day-chart" class="day-chart"></div>
+          <div id="day-axis" class="day-axis"><span>1일</span><span id="axis-mid"></span><span id="axis-last"></span></div>
+        </div>
+      </div>
     </section>
 
   </main>

@@ -58,9 +58,36 @@ function progressInfo(r) {
   return { percent, level: "ok", message: "오늘 한도 중 남은 돈이에요.", label };
 }
 
+// 이번 달 통계: 총 지출, 카테고리별 합계(많은 순), 일별 지출, 하루 평균, 가장 많이 쓴 날
+function monthStats(expenses, today) {
+  const [y, m, d] = today.split("-").map(Number);
+  const prefix = today.slice(0, 7);
+  const days = daysInMonth(y, m);
+  const byDay = Array.from({ length: days }, (_, i) => ({ day: i + 1, amount: 0 }));
+  const catMap = {};
+  let total = 0;
+
+  for (const e of expenses) {
+    if (!e.date.startsWith(prefix)) continue; // 이번 달만
+    total += e.amount;
+    byDay[Number(e.date.slice(8, 10)) - 1].amount += e.amount;
+    const name = e.category || "기타";
+    catMap[name] = (catMap[name] || 0) + e.amount;
+  }
+
+  const byCategory = Object.entries(catMap)
+    .map(([name, amount]) => ({ name, amount, percent: total ? Math.round((amount / total) * 100) : 0 }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const maxDay = byDay.reduce((best, x) => (x.amount > best.amount ? x : best), { day: 0, amount: 0 });
+  const average = Math.floor(total / d); // 이번 달 시작부터 오늘까지의 하루 평균
+
+  return { total, byCategory, byDay, maxDay, average, today: d, days };
+}
+
 // 테스트(node)에서 불러 쓸 수 있게 내보내기
 if (typeof module !== "undefined") {
-  module.exports = { calculate, progressInfo, toDateString, daysInMonth };
+  module.exports = { calculate, progressInfo, monthStats, toDateString, daysInMonth };
 }
 
 // ===== 화면과 저장 (브라우저에서만 실행) =====
@@ -131,6 +158,60 @@ if (typeof document !== "undefined") {
     $("bar").setAttribute("aria-valuenow", String(p.percent));
 
     renderList(thisMonth);
+    renderStats(today);
+  }
+
+  function renderStats(today) {
+    const s = monthStats(state.expenses, today);
+    const hasData = s.total > 0;
+    $("stats-empty").hidden = hasData;
+    $("stats-body").hidden = !hasData;
+    if (!hasData) return;
+
+    $("stat-total").textContent = won(s.total);
+    $("stat-average").textContent = won(s.average);
+    $("stat-maxday").textContent = `${s.maxDay.day}일 · ${won(s.maxDay.amount)}`;
+
+    // 카테고리별: 비율 막대
+    const catList = $("cat-stats");
+    catList.innerHTML = "";
+    for (const c of s.byCategory) {
+      const li = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "cat-row";
+      const name = document.createElement("span");
+      name.textContent = c.name;
+      const value = document.createElement("span");
+      value.textContent = won(c.amount);
+      const pct = document.createElement("span");
+      pct.className = "pct";
+      pct.textContent = c.percent + "%";
+      value.appendChild(pct);
+      row.append(name, value);
+      const track = document.createElement("div");
+      track.className = "cat-track";
+      const fill = document.createElement("div");
+      fill.className = "cat-fill";
+      fill.style.width = c.percent + "%";
+      track.appendChild(fill);
+      li.append(row, track);
+      catList.appendChild(li);
+    }
+
+    // 일별 지출: 세로 막대 (가장 많이 쓴 날이 100%)
+    const chart = $("day-chart");
+    chart.innerHTML = "";
+    const max = s.maxDay.amount;
+    const month = today.slice(5, 7);
+    for (const d of s.byDay) {
+      const bar = document.createElement("div");
+      bar.className = "day-bar" + (d.amount === 0 ? " zero" : "") + (d.day === s.today ? " today" : "");
+      bar.style.height = d.amount === 0 ? "3px" : Math.max(3, Math.round((d.amount / max) * 100)) + "%";
+      bar.title = `${month}/${String(d.day).padStart(2, "0")} ${won(d.amount)}`;
+      chart.appendChild(bar);
+    }
+    $("axis-mid").textContent = "15일";
+    $("axis-last").textContent = s.days + "일";
   }
 
   function renderList(thisMonth) {

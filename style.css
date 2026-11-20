@@ -188,3 +188,34 @@ button.secondary {
 }
 .list .actions button.danger { color: var(--bad); }
 li.editing { background: #fff8e6; border-radius: 8px; }
+
+/* 이번 달 통계 */
+h3 { font-size: 14px; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+
+.stats-top { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
+.stats-top span { display: block; font-size: 12px; color: var(--muted); }
+.stats-top strong { font-size: 14px; white-space: nowrap; }
+
+.cat-list { list-style: none; margin: 0; padding: 0; }
+.cat-list li { margin-bottom: 10px; }
+.cat-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+.cat-row .pct { color: var(--muted); margin-left: 6px; font-size: 12px; }
+.cat-track { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.cat-fill { height: 100%; background: var(--primary); border-radius: 999px; }
+
+.day-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 110px;
+  padding-top: 6px;
+}
+.day-bar {
+  flex: 1;
+  min-height: 3px;
+  background: #bcd0fb;
+  border-radius: 3px 3px 0 0;
+}
+.day-bar.zero { background: var(--line); }
+.day-bar.today { background: var(--primary); }
+.day-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }

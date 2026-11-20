@@ -1,6 +1,6 @@
 // 실행: node test.js
 const assert = require("assert");
-const { calculate, progressInfo } = require("./app.js");
+const { calculate, progressInfo, monthStats } = require("./app.js");
 
 const eq = (actual, expected, name) => {
   assert.deepStrictEqual(actual, expected, name);
@@ -61,5 +61,24 @@ eq(stage(15000).label, "오늘 한도의 150% 사용", "초과 비율 문구");
 // 예산을 다 쓴 상태: 한도 0원
 const broke = progressInfo(calculate(100000, [{ amount: 130000, date: "2026-11-05" }], "2026-11-10"));
 eq(broke.level + ":" + broke.percent, "bad:100", "예산 소진 = 빨강 100%");
+
+// ===== 이번 달 통계 =====
+const sample = [
+  { amount: 6000, date: "2026-11-03", category: "식비" },
+  { amount: 4000, date: "2026-11-03", category: "카페·간식" },
+  { amount: 10000, date: "2026-11-10", category: "식비" },
+  { amount: 5000, date: "2026-11-20" },          // 카테고리 없음 → 기타
+  { amount: 99999, date: "2026-10-31", category: "쇼핑" }, // 다른 달 → 제외
+];
+const st = monthStats(sample, "2026-11-20");
+eq(st.total, 25000, "통계: 이번 달 총 지출(다른 달 제외)");
+eq(st.byCategory.map((c) => `${c.name}:${c.amount}:${c.percent}`),
+  ["식비:16000:64", "기타:5000:20", "카페·간식:4000:16"], "통계: 카테고리별 합계와 비율(많은 순)");
+eq(st.byDay.length, 30, "통계: 11월은 30일");
+eq(st.byDay[2].amount, 10000, "통계: 같은 날 지출 합산");
+eq(st.maxDay, { day: 3, amount: 10000 }, "통계: 가장 많이 쓴 날");
+eq(st.average, 1250, "통계: 하루 평균(25000 ÷ 오늘 20일)");
+const empty = monthStats([], "2026-11-20");
+eq([empty.total, empty.byCategory.length, empty.maxDay.amount, empty.average], [0, 0, 0, 0], "통계: 지출 없음");
 
 console.log("\n모든 테스트 통과");
