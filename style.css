@@ -113,6 +113,23 @@ button.link {
 .hero-title { margin: 0; color: var(--muted); font-size: 15px; }
 .hero-amount { margin: 6px 0; font-size: 46px; font-weight: 800; letter-spacing: -1px; }
 .hero-status { margin: 0; font-size: 14px; color: var(--muted); }
+.bar {
+  height: 12px;
+  margin: 14px 4px 6px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--ok);
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+.hero.warn .bar-fill { background: var(--warn); }
+.hero.bad .bar-fill { background: var(--bad); }
+.bar-label { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
 .hero.ok .hero-amount { color: var(--ok); }
 .hero.warn .hero-amount { color: var(--warn); }
 .hero.bad .hero-amount { color: var(--bad); }

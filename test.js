@@ -1,6 +1,6 @@
 // 실행: node test.js
 const assert = require("assert");
-const { calculate } = require("./app.js");
+const { calculate, progressInfo } = require("./app.js");
 
 const eq = (actual, expected, name) => {
   assert.deepStrictEqual(actual, expected, name);
@@ -44,5 +44,22 @@ eq(calculate(300000, [{ amount: 99999, date: "2026-10-31" }], "2026-11-01").mont
 
 // 8) 2월(윤년 아님) 28일
 eq(calculate(280000, [], "2027-02-01").todayLimit, 10000, "2월 28일");
+
+// ===== 진행 막대 단계 =====
+// 한도 10,000원 기준 (월 첫날, 예산 300,000원)
+const stage = (spent) =>
+  progressInfo(calculate(300000, spent ? [{ amount: spent, date: "2026-11-01" }] : [], "2026-11-01"));
+
+eq(stage(0).level + ":" + stage(0).percent, "ok:0", "지출 0원 = 초록 0%");
+eq(stage(7999).level, "ok", "79.99% = 초록");
+eq(stage(8000).level + ":" + stage(8000).percent, "warn:80", "80% = 주황 경계");
+eq(stage(9500).level, "warn", "95% = 주황");
+eq(stage(10000).level + ":" + stage(10000).percent, "warn:100", "정확히 한도 = 주황 100%");
+eq(stage(10001).level + ":" + stage(10001).percent, "bad:100", "1원 초과 = 빨강(막대는 100%에서 멈춤)");
+eq(stage(15000).label, "오늘 한도의 150% 사용", "초과 비율 문구");
+
+// 예산을 다 쓴 상태: 한도 0원
+const broke = progressInfo(calculate(100000, [{ amount: 130000, date: "2026-11-05" }], "2026-11-10"));
+eq(broke.level + ":" + broke.percent, "bad:100", "예산 소진 = 빨강 100%");
 
 console.log("\n모든 테스트 통과");

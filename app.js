@@ -36,9 +36,31 @@ function calculate(budget, expenses, today) {
   return { daysLeft, todayLimit, spentToday, todayLeft, monthLeft };
 }
 
+// 진행 막대의 채움 비율(0~100), 색 단계, 안내 문구를 정한다.
+// 단계: 한도의 80% 미만 = ok(초록), 80% 이상~한도 이하 = warn(주황), 한도 초과 = bad(빨강)
+function progressInfo(r) {
+  if (r.todayLimit === 0) {
+    // 이번 달 예산을 이미 다 쓴 상태
+    return { percent: 100, level: "bad", message: "이번 달 예산을 모두 썼어요.", label: "예산 소진" };
+  }
+  const used = r.spentToday / r.todayLimit;
+  const percent = Math.min(100, Math.round(used * 100));
+  const label = `오늘 한도의 ${Math.round(used * 100)}% 사용`;
+  if (used > 1) {
+    return { percent: 100, level: "bad", message: "오늘 한도를 넘었어요. 내일 한도에서 줄어들어요.", label };
+  }
+  if (used === 1) {
+    return { percent: 100, level: "warn", message: "오늘 한도를 딱 맞게 다 썼어요.", label };
+  }
+  if (used >= 0.8) {
+    return { percent, level: "warn", message: "한도가 얼마 남지 않았어요.", label };
+  }
+  return { percent, level: "ok", message: "오늘 한도 중 남은 돈이에요.", label };
+}
+
 // 테스트(node)에서 불러 쓸 수 있게 내보내기
 if (typeof module !== "undefined") {
-  module.exports = { calculate, toDateString, daysInMonth };
+  module.exports = { calculate, progressInfo, toDateString, daysInMonth };
 }
 
 // ===== 화면과 저장 (브라우저에서만 실행) =====
@@ -99,17 +121,14 @@ if (typeof document !== "undefined") {
     $("month-left").textContent = (r.monthLeft < 0 ? "-" : "") + won(r.monthLeft);
 
     const hero = document.querySelector(".hero");
+    const p = progressInfo(r);
     hero.classList.remove("ok", "warn", "bad");
-    if (r.todayLeft < 0) {
-      $("today-left").textContent = won(r.todayLeft) + " 초과";
-      $("today-status").textContent = "오늘 한도를 넘었어요. 내일 한도에서 줄어들어요.";
-      hero.classList.add("bad");
-    } else {
-      $("today-left").textContent = won(r.todayLeft);
-      const ratio = r.todayLimit > 0 ? r.todayLeft / r.todayLimit : 0;
-      $("today-status").textContent = r.todayLimit === 0 ? "이번 달 예산을 모두 썼어요." : "오늘 한도 중 남은 돈이에요.";
-      hero.classList.add(ratio <= 0.2 ? "warn" : "ok");
-    }
+    hero.classList.add(p.level);
+    $("today-left").textContent = r.todayLeft < 0 ? won(r.todayLeft) + " 초과" : won(r.todayLeft);
+    $("today-status").textContent = p.message;
+    $("bar-fill").style.width = p.percent + "%";
+    $("bar-label").textContent = p.label;
+    $("bar").setAttribute("aria-valuenow", String(p.percent));
 
     renderList(thisMonth);
   }
