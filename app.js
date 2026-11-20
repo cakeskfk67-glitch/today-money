@@ -48,6 +48,9 @@ if (typeof document !== "undefined") {
   const $ = (id) => document.getElementById(id);
   const won = (n) => Math.abs(n).toLocaleString("ko-KR") + "원";
 
+  const CATEGORIES = ["식비", "카페·간식", "교통", "쇼핑", "문화·여가", "기타"];
+  let editingId = null; // 수정 중인 지출의 id (없으면 null)
+
   let state = load();
 
   function load() {
@@ -120,14 +123,85 @@ if (typeof document !== "undefined") {
     $("empty-msg").hidden = items.length > 0;
     for (const e of items) {
       const li = document.createElement("li");
+      if (e.id === editingId) li.className = "editing";
+
+      const info = document.createElement("div");
+      info.className = "info";
+      const top = document.createElement("div");
       const date = document.createElement("span");
       date.className = "date";
       date.textContent = e.date.slice(5).replace("-", "/");
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = e.category || "기타";
+      top.append(date, tag);
+      info.appendChild(top);
+      if (e.memo) {
+        const memo = document.createElement("div");
+        memo.className = "memo";
+        memo.textContent = e.memo;
+        info.appendChild(memo);
+      }
+
+      const right = document.createElement("div");
+      right.className = "right";
       const amount = document.createElement("strong");
       amount.textContent = won(e.amount);
-      li.append(date, amount);
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.textContent = "수정";
+      editBtn.addEventListener("click", () => startEdit(e.id));
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "danger";
+      delBtn.textContent = "삭제";
+      delBtn.addEventListener("click", () => deleteExpense(e.id));
+      actions.append(editBtn, delBtn);
+      right.append(amount, actions);
+
+      li.append(info, right);
       list.appendChild(li);
     }
+  }
+
+  // 입력 폼을 "새 지출 추가" 상태로 되돌린다 (날짜는 항상 오늘로)
+  function resetForm() {
+    editingId = null;
+    const todayStr = toDateString(new Date());
+    $("expense-amount").value = "";
+    $("expense-memo").value = "";
+    $("expense-date").value = todayStr;
+    $("expense-date").max = todayStr;
+    $("form-title").textContent = "지출 기록하기";
+    $("expense-submit").textContent = "추가";
+    $("edit-cancel").hidden = true;
+    showError($("expense-error"), "");
+  }
+
+  function startEdit(id) {
+    const e = state.expenses.find((x) => x.id === id);
+    if (!e) return;
+    editingId = id;
+    $("expense-amount").value = e.amount;
+    $("expense-category").value = e.category || "기타";
+    $("expense-memo").value = e.memo || "";
+    $("expense-date").value = e.date;
+    $("form-title").textContent = "지출 수정하기";
+    $("expense-submit").textContent = "저장";
+    $("edit-cancel").hidden = false;
+    showError($("expense-error"), "");
+    render();
+    $("expense-form").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function deleteExpense(id) {
+    if (!confirm("이 지출을 삭제할까요?")) return;
+    state.expenses = state.expenses.filter((x) => x.id !== id);
+    save();
+    if (editingId === id) resetForm();
+    render();
   }
 
   $("budget-form").addEventListener("submit", (ev) => {
@@ -156,10 +230,21 @@ if (typeof document !== "undefined") {
       showError($("expense-error"), "날짜를 선택해 주세요.");
       return;
     }
-    showError($("expense-error"), "");
-    state.expenses.push({ id: Date.now(), amount: value, date });
+    const category = $("expense-category").value;
+    const memo = $("expense-memo").value.trim();
+    if (editingId !== null) {
+      const target = state.expenses.find((x) => x.id === editingId);
+      if (target) Object.assign(target, { amount: value, date, category, memo });
+    } else {
+      state.expenses.push({ id: Date.now(), amount: value, date, category, memo });
+    }
     save();
-    $("expense-amount").value = "";
+    resetForm();
+    render();
+  });
+
+  $("edit-cancel").addEventListener("click", () => {
+    resetForm();
     render();
   });
 
@@ -169,10 +254,15 @@ if (typeof document !== "undefined") {
     render();
   });
 
-  // 지출 날짜 기본값은 오늘, 미래 날짜는 선택 불가
-  const todayStr = toDateString(new Date());
-  $("expense-date").value = todayStr;
-  $("expense-date").max = todayStr;
+  // 카테고리 선택지 채우기
+  for (const name of CATEGORIES) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    $("expense-category").appendChild(opt);
+  }
 
+  // 지출 날짜 기본값은 오늘, 미래 날짜는 선택 불가
+  resetForm();
   render();
 }

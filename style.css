@@ -58,7 +58,18 @@ input {
   color: var(--text);
 }
 
-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+select {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-family: inherit;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+}
+
+input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
 
 .input-row { display: flex; align-items: center; gap: 8px; }
 .unit { font-size: 18px; color: var(--muted); }
@@ -110,13 +121,53 @@ button.link {
 .summary span { display: block; font-size: 12px; color: var(--muted); }
 .summary strong { font-size: 17px; }
 
+button.secondary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  font-size: 16px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
 .list { list-style: none; margin: 0; padding: 0; }
 .list li {
   display: flex;
   justify-content: space-between;
-  padding: 10px 2px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 2px;
   border-bottom: 1px solid var(--line);
   font-size: 15px;
 }
 .list li:last-child { border-bottom: 0; }
-.list .date { color: var(--muted); }
+.list .info { min-width: 0; }
+.list .date { color: var(--muted); margin-right: 8px; }
+.list .tag {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 12px;
+  color: var(--primary);
+  background: #e8efff;
+  border-radius: 999px;
+}
+.list .memo {
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list .right { text-align: right; flex-shrink: 0; }
+.list .actions { margin-top: 4px; }
+.list .actions button {
+  background: none;
+  border: 0;
+  padding: 2px 6px;
+  font-size: 13px;
+  color: var(--primary);
+}
+.list .actions button.danger { color: var(--bad); }
+li.editing { background: #fff8e6; border-radius: 8px; }
