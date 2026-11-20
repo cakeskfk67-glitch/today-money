@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘 쓸 수 있는 돈</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- 1) 첫 화면: 이번 달 예산 입력 -->
+    <section id="setup" class="card" hidden>
+      <h1>오늘 쓸 수 있는 돈</h1>
+      <p class="hint">이번 달 용돈(예산)을 입력하면<br>오늘 하루 쓸 수 있는 금액을 알려 드려요.</p>
+      <form id="budget-form">
+        <label for="budget-input">이번 달 용돈</label>
+        <div class="input-row">
+          <input id="budget-input" type="text" inputmode="numeric" placeholder="예: 300000" autocomplete="off" required>
+          <span class="unit">원</span>
+        </div>
+        <p id="budget-error" class="error" hidden></p>
+        <button type="submit" class="primary">시작하기</button>
+      </form>
+    </section>
+
+    <!-- 2) 메인 화면 -->
+    <section id="main" hidden>
+      <header class="top">
+        <span id="today-label"></span>
+        <button id="reset-budget" class="link" type="button">예산 다시 설정</button>
+      </header>
+
+      <div class="card hero">
+        <p class="hero-title">오늘 쓸 수 있는 돈</p>
+        <p id="today-left" class="hero-amount">0원</p>
+        <p id="today-status" class="hero-status"></p>
+      </div>
+
+      <div class="card summary">
+        <div><span>오늘 한도</span><strong id="today-limit">0원</strong></div>
+        <div><span>오늘 쓴 돈</span><strong id="today-spent">0원</strong></div>
+        <div><span>이번 달 남은 예산</span><strong id="month-left">0원</strong></div>
+        <div><span>남은 일수(오늘 포함)</span><strong id="days-left">0일</strong></div>
+      </div>
+
+      <form id="expense-form" class="card">
+        <h2>지출 기록하기</h2>
+        <label for="expense-amount">금액</label>
+        <div class="input-row">
+          <input id="expense-amount" type="text" inputmode="numeric" placeholder="예: 4500" autocomplete="off" required>
+          <span class="unit">원</span>
+        </div>
+        <label for="expense-date">날짜</label>
+        <input id="expense-date" type="date" required>
+        <p id="expense-error" class="error" hidden></p>
+        <button type="submit" class="primary">추가</button>
+      </form>
+
+      <div class="card">
+        <h2>이번 달 지출</h2>
+        <ul id="expense-list" class="list"></ul>
+        <p id="empty-msg" class="hint">아직 기록한 지출이 없어요.</p>
+      </div>
+    </section>
+
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
