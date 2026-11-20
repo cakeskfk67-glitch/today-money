@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>디자인 샘플</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 12px 40px; background: #d9dde6; font-family: "Malgun Gothic", system-ui, sans-serif; }
+  h1 { text-align: center; font-size: 18px; margin: 0 0 4px; color: #222; }
+  .sub { text-align: center; font-size: 13px; color: #555; margin: 0 0 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; }
+  .wrap { width: 330px; }
+  .label { text-align: center; font-weight: 700; font-size: 15px; margin-bottom: 4px; color: #222; }
+  .desc { text-align: center; font-size: 12px; color: #555; margin-bottom: 8px; min-height: 32px; }
+
+  /* 공통 폰 틀 */
+  .phone { width: 330px; height: 640px; border-radius: 28px; border: 6px solid #1a1a1a; overflow: hidden; position: relative; background: var(--bg); color: var(--text); }
+  .screen { height: 100%; overflow: hidden; padding: 18px 16px 70px; }
+  .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .hero { text-align: center; }
+  .hero .t { font-size: 13px; color: var(--muted); margin: 0; }
+  .hero .n { font-size: 40px; font-weight: 800; margin: 4px 0 8px; letter-spacing: -1px; color: var(--accent); }
+  .bar { height: 12px; border-radius: 999px; background: var(--track); overflow: hidden; margin: 0 4px; }
+  .bar i { display: block; height: 100%; width: 22%; border-radius: 999px; background: var(--accent); }
+  .hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+  .chip span { display: block; font-size: 11px; color: var(--muted); }
+  .chip b { font-size: 15px; }
+  .sec { font-size: 13px; font-weight: 700; margin: 12px 2px 6px; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; }
+  .ico { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; flex-shrink: 0; }
+  .item .m { flex: 1; min-width: 0; }
+  .item .m b { display: block; font-size: 14px; }
+  .item .m small { font-size: 11px; color: var(--muted); }
+  .item .a { font-weight: 700; font-size: 14px; }
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; display: flex; justify-content: space-around; align-items: center; font-size: 11px; }
+  .tabs div { text-align: center; color: var(--muted); }
+  .tabs div.on { color: var(--accent); font-weight: 700; }
+  .tabs em { display: block; font-style: normal; font-size: 18px; }
+  .fab { width: 100%; padding: 12px; border: 0; font-size: 15px; font-weight: 700; margin-top: 10px; }
+
+  /* A. 토스 느낌: 깔끔한 흰 바탕 + 파란 포인트 */
+  .A { --bg: #f2f4f6; --text: #191f28; --muted: #8b95a1; --accent: #3182f6; --track: #e5e8eb; }
+  .A .card { background: #fff; border-radius: 20px; padding: 18px; margin-bottom: 10px; }
+  .A .chip { background: #f2f4f6; border-radius: 14px; padding: 10px 12px; }
+  .A .ico { background: #e8f3ff; }
+  .A .tabs { background: #fff; border-top: 1px solid #eceef1; }
+  .A .fab { background: #3182f6; color: #fff; border-radius: 14px; }
+
+  /* B. 다크 핀테크: 어두운 배경 + 민트 포인트 */
+  .B { --bg: #0f1623; --text: #e8edf5; --muted: #7f8aa0; --accent: #2de1a3; --track: #232d40; }
+  .B .card { background: #18212f; border-radius: 22px; padding: 18px; margin-bottom: 10px; border: 1px solid #243046; }
+  .B .hero .n { text-shadow: 0 0 24px rgba(45, 225, 163, 0.35); }
+  .B .bar i { background: linear-gradient(90deg, #2de1a3, #5ef2c5); }
+  .B .chip { background: #1f2a3b; border-radius: 14px; padding: 10px 12px; }
+  .B .ico { background: #243046; }
+  .B .tabs { background: #121a28; border-top: 1px solid #243046; }
+  .B .fab { background: #2de1a3; color: #06241a; border-radius: 14px; }
+
+  /* C. 따뜻한 파스텔: 크림 배경 + 코랄 포인트 + 귀여운 느낌 */
+  .C { --bg: #fff6ec; --text: #4a3b32; --muted: #a58f80; --accent: #ff7a59; --track: #ffe3d3; }
+  .C .card { background: #fff; border-radius: 26px; padding: 18px; margin-bottom: 10px; box-shadow: 0 6px 0 #ffe3d3; }
+  .C .hero .n { font-size: 42px; }
+  .C .bar { height: 16px; border: 2px solid #ffd3bd; background: #fff; }
+  .C .bar i { background: repeating-linear-gradient(45deg, #ff7a59, #ff7a59 10px, #ff906f 10px, #ff906f 20px); }
+  .C .chip { background: #fff0e3; border-radius: 18px; padding: 10px 12px; }
+  .C .ico { background: #ffe9dc; }
+  .C .tabs { background: #fff; border-top: 2px solid #ffe3d3; }
+  .C .fab { background: #ff7a59; color: #fff; border-radius: 999px; box-shadow: 0 4px 0 #e0623f; }
+</style>
+</head>
+<body>
+  <h1>디자인 샘플 3가지</h1>
+  <p class="sub">같은 화면(오늘 남은 금액 35,454원)을 스타일만 바꿔 본 것입니다.</p>
+  <div class="row">
+
+    <!-- A -->
+    <div class="wrap">
+      <div class="label">A. 깔끔한 금융 앱 느낌</div>
+      <div class="desc">흰 카드 + 파란 포인트. 토스처럼 단정하고 읽기 쉬움.</div>
+      <div class="phone A"><div class="screen">
+        <div class="top"><span>2026.11.20</span><span style="color:var(--accent)">예산 다시 설정</span></div>
+        <div class="card hero">
+          <p class="t">오늘 쓸 수 있는 돈</p>
+          <p class="n">35,454원</p>
+          <div class="bar"><i></i></div>
+          <p class="hint">오늘 한도의 22% 사용</p>
+        </div>
+        <div class="chips">
+          <div class="chip"><span>오늘 한도</span><b>45,454원</b></div>
+          <div class="chip"><span>오늘 쓴 돈</span><b>10,000원</b></div>
+        </div>
+        <div class="card" style="padding:8px 6px">
+          <div class="item"><div class="ico">🍚</div><div class="m"><b>식비</b><small>점심</small></div><div class="a">6,000원</div></div>
+          <div class="item"><div class="ico">☕</div><div class="m"><b>카페·간식</b><small>아메리카노</small></div><div class="a">4,000원</div></div>
+        </div>
+        <button class="fab">지출 기록하기</button>
+      </div>
+      <div class="tabs"><div class="on"><em>🏠</em>오늘</div><div><em>🧾</em>내역</div><div><em>📊</em>통계</div></div></div>
+    </div>
+
+    <!-- B -->
+    <div class="wrap">
+      <div class="label">B. 다크 모드 핀테크</div>
+      <div class="desc">어두운 배경 + 민트색 포인트. 세련되고 숫자가 돋보임.</div>
+      <div class="phone B"><div class="screen">
+        <div class="top"><span>2026.11.20</span><span style="color:var(--accent)">예산 다시 설정</span></div>
+        <div class="card hero">
+          <p class="t">오늘 쓸 수 있는 돈</p>
+          <p class="n">35,454원</p>
+          <div class="bar"><i></i></div>
+          <p class="hint">오늘 한도의 22% 사용</p>
+        </div>
+        <div class="chips">
+          <div class="chip"><span>오늘 한도</span><b>45,454원</b></div>
+          <div class="chip"><span>오늘 쓴 돈</span><b>10,000원</b></div>
+        </div>
+        <div class="card" style="padding:8px 6px">
+          <div class="item"><div class="ico">🍚</div><div class="m"><b>식비</b><small>점심</small></div><div class="a">6,000원</div></div>
+          <div class="item"><div class="ico">☕</div><div class="m"><b>카페·간식</b><small>아메리카노</small></div><div class="a">4,000원</div></div>
+        </div>
+        <button class="fab">지출 기록하기</button>
+      </div>
+      <div class="tabs"><div class="on"><em>🏠</em>오늘</div><div><em>🧾</em>내역</div><div><em>📊</em>통계</div></div></div>
+    </div>
+
+    <!-- C -->
+    <div class="wrap">
+      <div class="label">C. 따뜻한 파스텔 가계부</div>
+      <div class="desc">크림색 배경 + 코랄 포인트. 귀엽고 친근해서 매일 열고 싶은 느낌.</div>
+      <div class="phone C"><div class="screen">
+        <div class="top"><span>2026.11.20</span><span style="color:var(--accent)">예산 다시 설정</span></div>
+        <div class="card hero">
+          <p class="t">🐷 오늘 쓸 수 있는 돈</p>
+          <p class="n">35,454원</p>
+          <div class="bar"><i></i></div>
+          <p class="hint">오늘 한도의 22% 사용</p>
+        </div>
+        <div class="chips">
+          <div class="chip"><span>오늘 한도</span><b>45,454원</b></div>
+          <div class="chip"><span>오늘 쓴 돈</span><b>10,000원</b></div>
+        </div>
+        <div class="card" style="padding:8px 6px">
+          <div class="item"><div class="ico">🍚</div><div class="m"><b>식비</b><small>점심</small></div><div class="a">6,000원</div></div>
+          <div class="item"><div class="ico">☕</div><div class="m"><b>카페·간식</b><small>아메리카노</small></div><div class="a">4,000원</div></div>
+        </div>
+        <button class="fab">지출 기록하기</button>
+      </div>
+      <div class="tabs"><div class="on"><em>🏠</em>오늘</div><div><em>🧾</em>내역</div><div><em>📊</em>통계</div></div></div>
+    </div>
+
+  </div>
+</body>
+</html>
