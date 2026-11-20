@@ -6,7 +6,7 @@
   - 오늘 남은 금액 = 오늘 한도 - 오늘 지출, 음수면 "○원 초과" 표시 + 빨간색
   - 예산을 이미 넘긴 상태면 한도 0원, 다른 달 지출은 제외
 - 계산 테스트: `node test.js` (9개 통과). 브라우저에서 모바일 크기로 예산→지출→새로고침 유지까지 확인함
-- 저장소 이름은 `dutch-pay`로 남아 있음 (이전 주제 흔적, 필요하면 GitHub Settings에서 이름 변경)
+- 저장소 이름은 `today-money`로 변경함 (처음 이름 `dutch-pay`는 이전 주제 흔적)
 - **아직 안 한 것**: GitHub Pages 배포(접속 주소 없음), 부가 기능 3개
 
 # 핵심 결정 사항
@@ -19,7 +19,7 @@
 # 작업 규칙
 - API 키는 코드·저장소·메신저에 넣지 않는다 (Claude 앱 설정에만 입력, 매주 새 키)
 - 커밋 작성자는 폴더별로 설정해야 함: `git config user.name "cakeskfk67-glitch"`, `git config user.email "cakeskfk67-glitch@users.noreply.github.com"` (실습실 PC 전역 설정은 다른 사람 것이니 건드리지 않는다)
-- 다른 PC에서는 `git clone https://github.com/cakeskfk67-glitch/dutch-pay.git` 후 위 설정부터
+- 다른 PC에서는 `git clone https://github.com/cakeskfk67-glitch/today-money.git` 후 위 설정부터
 - 수업 끝나기 전에 항상 이 파일을 갱신하고 `git push`. 끝나면 GitHub 로그아웃 + 자격 증명 관리자에서 `git:https://github.com` 삭제
 
 # 다음에 할 일 (2주차, 11/27)
