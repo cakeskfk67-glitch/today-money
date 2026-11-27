@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>코인·코스 느낌 디자인 샘플</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 12px 40px; background: #cfd6e2; font-family: "Malgun Gothic", system-ui, sans-serif; }
+  h1 { text-align: center; font-size: 18px; margin: 0 0 4px; color: #222; }
+  .sub { text-align: center; font-size: 13px; color: #555; margin: 0 0 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; }
+  .wrap { width: 330px; }
+  .label { text-align: center; font-weight: 700; font-size: 15px; margin-bottom: 4px; color: #222; }
+  .desc { text-align: center; font-size: 12px; color: #555; margin-bottom: 8px; min-height: 32px; }
+  .phone { width: 330px; height: 660px; border-radius: 28px; border: 6px solid #1a1a1a; overflow: hidden; position: relative; }
+  .screen { height: 100%; overflow: hidden; padding: 16px 14px 72px; }
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; display: flex; justify-content: space-around; align-items: center; font-size: 11px; }
+  .tabs em { display: block; font-style: normal; font-size: 19px; }
+
+  /* ===== F. 코인·코스 느낌 (마리오풍: 하늘 + 코인 + 코스 진행) ===== */
+  .F { background: linear-gradient(#5ec2ff 0, #bde9ff 60%, #e9f8ff 100%); color: #3a2a12; position: relative; }
+  .F .cloud { position: absolute; font-size: 34px; opacity: .9; }
+  .F .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; position: relative; }
+  .F .date { background: #fff; border: 3px solid #3a2a12; border-radius: 10px; padding: 2px 10px; font-size: 12px; font-weight: 800; }
+  .F .coinsum { background: #ffd23f; border: 3px solid #3a2a12; border-radius: 10px; padding: 2px 10px; font-size: 12px; font-weight: 800; }
+  .F .npc { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 8px; position: relative; }
+  .F .npc .face { width: 52px; height: 52px; border-radius: 12px; background: #ff5a4f; border: 3px solid #3a2a12; display: grid; place-items: center; font-size: 28px; flex-shrink: 0; }
+  .F .bubble { position: relative; flex: 1; background: #fff; border: 3px solid #3a2a12; border-radius: 14px; padding: 8px 10px; font-size: 13px; line-height: 1.4; }
+  .F .bubble:before { content: ""; position: absolute; left: -11px; bottom: 14px; border: 7px solid transparent; border-right: 9px solid #3a2a12; }
+  .F .bubble b { color: #e0402f; }
+  .F .panel { background: #fffdf3; border: 3px solid #3a2a12; border-radius: 14px; padding: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #3a2a12; position: relative; }
+  .F .big { text-align: center; font-size: 12px; margin: 0; }
+  .F .num { text-align: center; font-size: 40px; font-weight: 900; color: #e0402f; margin: 0 0 6px; letter-spacing: -1px; text-shadow: 2px 2px 0 #ffd23f; }
+  .F .num small { font-size: 18px; color: #3a2a12; text-shadow: none; }
+  .F .coins { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+  .F .coins i { aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff2a0, #ffc300 60%, #d99a00); border: 2px solid #3a2a12; }
+  .F .coins i.gone { background: #d9d2c0; border-style: dashed; border-color: #a99f86; }
+  .F .hint { text-align: center; font-size: 11px; margin: 6px 0 0; color: #7a6540; }
+  .F .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .F .grid div { background: #fffdf3; border: 3px solid #3a2a12; border-radius: 12px; padding: 6px 10px; }
+  .F .grid span { display: block; font-size: 11px; color: #7a6540; }
+  .F .grid b { font-size: 15px; }
+  .F .course { margin-bottom: 10px; position: relative; }
+  .F .course p { margin: 0 0 4px; font-size: 11px; font-weight: 800; }
+  .F .road { position: relative; height: 22px; background: #8bd24b; border: 3px solid #3a2a12; border-radius: 999px; }
+  .F .road .done { position: absolute; left: 0; top: 0; bottom: 0; width: 66%; background: repeating-linear-gradient(90deg, #6bb832 0 10px, #7cc93f 10px 20px); border-radius: 999px; }
+  .F .road .hero { position: absolute; left: 66%; top: -17px; font-size: 20px; transform: translateX(-50%); }
+  .F .road .flag { position: absolute; right: 4px; top: -17px; font-size: 20px; }
+  .F .row2 { display: flex; align-items: center; gap: 10px; padding: 5px 2px; }
+  .F .row2 + .row2 { border-top: 2px dotted #d9c98f; }
+  .F .ic { width: 32px; height: 32px; border-radius: 8px; background: #ffd9a8; border: 2px solid #3a2a12; display: grid; place-items: center; font-size: 16px; }
+  .F .row2 .m { flex: 1; font-size: 14px; font-weight: 800; }
+  .F .row2 .m small { display: block; font-weight: 400; font-size: 11px; color: #7a6540; }
+  .F .btn { width: 100%; border: 3px solid #3a2a12; background: #ff5a4f; color: #fff; font-weight: 900; font-size: 15px; padding: 10px; border-radius: 12px; box-shadow: 0 4px 0 #a82a22; }
+  .F .tabs { background: #c9753a; border-top: 4px solid #3a2a12; background-image: linear-gradient(#3a2a12 2px, transparent 2px), linear-gradient(90deg, #3a2a12 2px, transparent 2px); background-size: 40px 30px; color: #fff; }
+  .F .tabs span { background: #c9753a; padding: 2px 8px; border-radius: 6px; }
+  .F .tabs .on { background: #ffd23f; color: #3a2a12; font-weight: 800; border: 2px solid #3a2a12; }
+</style>
+</head>
+<body>
+<h1>코인·코스 느낌 샘플</h1>
+<p class="sub">같은 화면(오늘 남은 금액 35,454원, 한도의 22% 사용)을 마리오 느낌(직접 그린 코인·코스·하늘)으로 바꿔 본 것입니다. 실제 캐릭터·이미지는 쓰지 않고 이모지만 사용했습니다.</p>
+
+<div class="row">
+  <div class="wrap">
+    <div class="label">F. 코인·코스 느낌</div>
+    <div class="desc">하늘 배경 + 코인 10칸(쓴 만큼 사라짐) + 월말까지 코스 진행. 글자는 쉬운 한글 그대로.</div>
+    <div class="phone">
+      <div class="screen F">
+        <span class="cloud" style="right:18px; top:46px">☁️</span>
+        <span class="cloud" style="left:150px; top:120px; font-size:26px">☁️</span>
+        <div class="top">
+          <span class="date">11월 20일 금요일</span>
+          <span class="coinsum">💰 이번 달 남은 용돈</span>
+        </div>
+        <div class="npc">
+          <div class="face">🍄</div>
+          <div class="bubble">오늘은 <b>35,454원</b>까지 쓸 수 있어요! 아직 코인이 넉넉해요.</div>
+        </div>
+        <div class="panel">
+          <p class="big">오늘 쓸 수 있는 돈</p>
+          <p class="num">35,454<small>원</small></p>
+          <div class="coins"><i class="gone"></i><i class="gone"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="hint">오늘 한도의 22% 사용 · 코인 한 칸 = 4,545원</p>
+        </div>
+        <div class="course">
+          <p>월말까지 20일 / 30일</p>
+          <div class="road"><div class="done"></div><span class="hero">🏃</span><span class="flag">🚩</span></div>
+        </div>
+        <div class="grid">
+          <div><span>오늘 한도</span><b>45,454원</b></div>
+          <div><span>오늘 쓴 돈</span><b>10,000원</b></div>
+        </div>
+        <div class="panel" style="padding:6px 12px">
+          <div class="row2"><div class="ic">🍚</div><div class="m">식비<small>점심</small></div><b>6,000원</b></div>
+          <div class="row2"><div class="ic">☕</div><div class="m">카페·간식<small>아메리카노</small></div><b>4,000원</b></div>
+        </div>
+        <button class="btn">지출 기록하기</button>
+      </div>
+      <div class="tabs F"><span class="on"><em>🏠</em>오늘</span><span><em>📋</em>내역</span><span><em>📊</em>통계</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

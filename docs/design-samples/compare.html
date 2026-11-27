@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>디자인 샘플 비교</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; font-family: "Malgun Gothic", system-ui, sans-serif; background: #cfd6e2; }
+  body { display: flex; flex-direction: column; }
+  nav { display: flex; gap: 6px; justify-content: center; padding: 8px; background: #fff; border-bottom: 1px solid #bbb; flex-wrap: wrap; }
+  button { border: 2px solid #333; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  button.on { background: #2d6df6; color: #fff; border-color: #2d6df6; }
+  iframe { flex: 1; width: 100%; border: 0; }
+</style>
+</head>
+<body>
+<nav>
+  <button data-src="samples.html" class="on">A·B·C 보기</button>
+  <button data-src="samples2.html">D·E 보기</button>
+  <button data-src="samples3.html">F 보기</button>
+  <button data-src="samples4.html">F 움직이는 버전</button>
+</nav>
+<iframe id="f" src="samples.html" title="디자인 샘플"></iframe>
+<script>
+  var f = document.getElementById("f");
+  document.querySelectorAll("button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on");
+      f.src = b.dataset.src;
+    });
+  });
+</script>
+</body>
+</html>
