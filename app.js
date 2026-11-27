@@ -158,9 +158,109 @@ if (typeof document !== "undefined") {
     $("bar").setAttribute("aria-valuenow", String(p.percent));
 
     renderGame(r, p, today);
+    renderAdventure(r, p, today);
     renderList(thisMonth);
     renderStats(today);
   }
+
+  // ===== adventure 디자인: 캐릭터가 달리는 장면 (다른 디자인에서는 숨겨져 있어 영향 없음) =====
+  const HERO_DIR = "assets/hero/character_maleAdventurer_";
+  const HERO_SEQ = {
+    run: { frames: ["run0", "run1", "run2", "run1"], ms: 110 },
+    walk: { frames: ["walk0", "walk1", "walk2", "walk3", "walk4", "walk5", "walk6", "walk7"], ms: 140 },
+    cheer: { frames: ["cheer0", "cheer1"], ms: 420 },
+    hurt: { frames: ["hurt"], ms: 0 },
+    idle: { frames: ["idle"], ms: 0 },
+  };
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let heroTimer = null;
+  let heroMode = null;
+  let heroLock = false; // 지출 직후 잠깐 "아야" 동작을 보여 주는 동안 true
+
+  // 이미지를 미리 불러 두어 동작이 바뀔 때 깜빡이지 않게 한다
+  for (const seq of Object.values(HERO_SEQ)) for (const f of seq.frames) new Image().src = HERO_DIR + f + ".png";
+
+  function setHeroMode(mode) {
+    if (mode === heroMode) return;
+    heroMode = mode;
+    clearInterval(heroTimer);
+    const img = $("a-hero");
+    const seq = reduceMotion ? HERO_SEQ.idle : HERO_SEQ[mode];
+    let i = 0;
+    const step = () => { img.src = HERO_DIR + seq.frames[i % seq.frames.length] + ".png"; i++; };
+    step();
+    if (seq.ms) heroTimer = setInterval(step, seq.ms);
+  }
+
+  function renderAdventure(r, p, today) {
+    const scene = $("a-scene");
+    scene.classList.remove("lv-ok", "lv-warn", "lv-bad");
+    scene.classList.add("lv-" + p.level);
+    const [y, m, d] = today.split("-").map(Number);
+    const total = daysInMonth(y, m);
+
+    $("a-date").textContent = `${m}월 ${d}일`;
+    $("a-days").textContent = `남은 ${r.daysLeft}일`;
+    $("a-month").textContent = (r.monthLeft < 0 ? "-" : "") + won(r.monthLeft);
+    $("a-label").textContent = r.todayLeft < 0 ? "오늘 한도를 넘었어요" : "오늘 쓸 수 있는 돈";
+    const amountText = r.todayLeft < 0 ? won(r.todayLeft) + " 초과" : won(r.todayLeft);
+    $("a-amount").textContent = amountText;
+    // 글자가 길면(예: 초과 금액) 폰 화면 폭에 맞게 숫자 크기를 줄인다
+    scene.classList.toggle("long", amountText.length > 8);
+    scene.classList.toggle("xlong", amountText.length > 11);
+
+    // 코인 10칸
+    const used = r.todayLimit === 0 ? 10 : Math.min(10, Math.floor((r.spentToday / r.todayLimit) * 10));
+    const coins = $("a-coins");
+    coins.innerHTML = "";
+    for (let i = 0; i < 10; i++) {
+      const c = document.createElement("i");
+      if (i < used) c.className = "gone";
+      coins.appendChild(c);
+    }
+
+    // 말풍선
+    const left = won(Math.max(r.todayLeft, 0));
+    let msg;
+    if (p.level === "ok") msg = r.spentToday === 0 ? `오늘 <b>${left}</b> 쓸 수 있어요! 아낄수록 멀리 가요.` : `오늘 <b>${left}</b> 남았어요. 좋은 페이스예요!`;
+    else if (r.todayLeft < 0) msg = `앗, <b>${won(r.todayLeft)}</b> 넘었어요! 내일 조금만 아껴요.`;
+    else msg = `조심! <b>${left}</b> 남았어요.`;
+    $("a-bubble").innerHTML = msg;
+
+    // 월말까지 코스
+    const pct = (d / total) * 100 + "%";
+    $("a-course-text").textContent = `월말까지 ${d}일 / ${total}일`;
+    $("a-track-fill").style.width = pct;
+    $("a-track-hero").style.left = pct;
+
+    // 캐릭터 동작: 오늘 안 썼으면 환호, 여유 있으면 달리기, 아슬아슬하면 걷기, 초과면 아야
+    if (!heroLock) setHeroMode(p.level === "bad" ? "hurt" : p.level === "warn" ? "walk" : r.spentToday === 0 ? "cheer" : "run");
+  }
+
+  // 지출을 기록했을 때의 연출: 화면 흔들림 + "-금액" 떠오르기 + 캐릭터 아야
+  function spendFx(amount) {
+    const scene = $("a-scene");
+    scene.classList.remove("hit");
+    void scene.offsetWidth; // 애니메이션을 처음부터 다시 재생
+    scene.classList.add("hit");
+    const f = document.createElement("span");
+    f.className = "a-float";
+    f.textContent = "-" + amount.toLocaleString("ko-KR");
+    scene.appendChild(f);
+    setTimeout(() => f.remove(), 1100);
+    heroLock = true;
+    heroMode = null;
+    setHeroMode("hurt");
+    setTimeout(() => { heroLock = false; render(); }, 700);
+  }
+
+  // 아래에서 올라오는 지출 입력창 (adventure 디자인에서만 사용)
+  function openSheet() { document.body.classList.add("sheet-open"); }
+  function closeSheet() { document.body.classList.remove("sheet-open"); }
+  $("a-fab").addEventListener("click", () => { resetForm(); render(); openSheet(); });
+  $("a-backdrop").addEventListener("click", closeSheet);
+  $("sheet-close").addEventListener("click", () => { resetForm(); render(); closeSheet(); });
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeSheet(); });
 
   // 게임식 디자인용 표시 (코인 칸, 말풍선, 코스 진행). 기본 디자인에서는 숨겨져 있어 영향이 없다.
   let lastUsedCoins = null;
@@ -351,6 +451,7 @@ if (typeof document !== "undefined") {
     $("edit-cancel").hidden = false;
     showError($("expense-error"), "");
     showTab("today"); // 입력 폼이 "오늘" 탭에 있으므로 이동
+    openSheet();
     render();
     $("expense-form").scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -391,7 +492,8 @@ if (typeof document !== "undefined") {
     }
     const category = $("expense-category").value;
     const memo = $("expense-memo").value.trim();
-    if (editingId !== null) {
+    const isNew = editingId === null;
+    if (!isNew) {
       const target = state.expenses.find((x) => x.id === editingId);
       if (target) Object.assign(target, { amount: value, date, category, memo });
     } else {
@@ -399,11 +501,14 @@ if (typeof document !== "undefined") {
     }
     save();
     resetForm();
+    closeSheet();
     render();
+    if (isNew) spendFx(value);
   });
 
   $("edit-cancel").addEventListener("click", () => {
     resetForm();
+    closeSheet();
     render();
   });
 

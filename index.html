@@ -19,6 +19,12 @@
         link.href = name + ".css";
         document.head.appendChild(link);
       }
+      // adventure: 장면(캐릭터가 달리는 초원)과 하단 입력창이 있는 게임 화면 디자인. 단독으로 쓰는 스타일 파일.
+      if (t === "adventure" || !t) {
+        root.classList.add("theme-adventure");
+        addCss("adventure");
+        return;
+      }
       root.classList.add("theme-game");
       addCss("game");
       if (extra[t]) {
@@ -54,6 +60,24 @@
       </header>
 
       <div id="tab-today" class="tab-panel">
+      <!-- adventure 디자인 전용: 캐릭터가 달리는 장면 (다른 디자인에서는 숨김) -->
+      <div id="a-scene" class="a-only a-scene">
+        <div class="a-hud">
+          <span id="a-date" class="a-pill"></span>
+          <span id="a-days" class="a-pill"></span>
+          <span id="a-month" class="a-pill a-pill-coin"></span>
+        </div>
+        <p id="a-label" class="a-label">오늘 쓸 수 있는 돈</p>
+        <p id="a-amount" class="a-amount">0원</p>
+        <div id="a-coins" class="a-coins" aria-hidden="true"></div>
+        <img id="a-hero" class="a-hero" alt="" src="assets/hero/character_maleAdventurer_idle.png">
+        <div id="a-bubble" class="a-bubble"></div>
+        <div class="a-course" aria-hidden="true">
+          <span id="a-course-text" class="a-course-text"></span>
+          <div class="a-track"><i id="a-track-fill"></i><img id="a-track-hero" alt="" src="assets/hero/character_maleAdventurer_idle.png"><b class="a-flag">🚩</b></div>
+        </div>
+        <div class="a-vignette"></div>
+      </div>
       <div class="card hero">
         <!-- 게임식 디자인에서만 보이는 캐릭터·말풍선 -->
         <div class="g-only g-npc" aria-hidden="true">
@@ -102,7 +126,10 @@
         <div><span>남은 일수(오늘 포함)</span><strong id="days-left">0일</strong></div>
       </div>
 
+      <button id="a-fab" type="button" class="a-only a-fab">＋ 지출 기록하기</button>
+      <div id="a-backdrop" class="a-only a-backdrop"></div>
       <form id="expense-form" class="card">
+        <button id="sheet-close" type="button" class="a-only a-close" aria-label="닫기">×</button>
         <h2 id="form-title">지출 기록하기</h2>
         <label for="expense-amount">금액</label>
         <div class="input-row">
