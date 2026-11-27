@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>오늘 쓸 수 있는 돈</title>
-  <link rel="stylesheet" href="style.css?v=20261127d">
-  <script>window.APP_VERSION = "20261127d";</script>
+  <link rel="stylesheet" href="style.css?v=20261127e">
+  <script>window.APP_VERSION = "20261127e";</script>
   <script>
     // 기본은 게임식 디자인(game). 주소 끝에 ?theme=toss | neon | fantasy | soft 를 붙이면 다른 디자인
     // neon / fantasy / soft 는 game.css(구조) 위에 자기 스타일 파일을 한 겹 더 입힌다.
@@ -48,13 +48,17 @@
     <!-- 1) 첫 화면: 이번 달 예산 입력 -->
     <section id="setup" class="card" hidden>
       <h1>오늘 쓸 수 있는 돈</h1>
-      <p class="hint">이번 달 용돈(예산)을 입력하면<br>오늘 하루 쓸 수 있는 금액을 알려 드려요.</p>
+      <p id="setup-note" class="setup-note" hidden>🎉 용돈이 들어오는 날이에요! 새 용돈을 입력해 주세요.</p>
+      <p class="hint">지금 가진 용돈(예산)을 입력하면<br>오늘 하루 쓸 수 있는 금액을 알려 드려요.</p>
       <form id="budget-form">
-        <label for="budget-input">이번 달 용돈</label>
+        <label for="budget-input">지금 남은 용돈</label>
         <div class="input-row">
           <input id="budget-input" type="text" inputmode="numeric" placeholder="예: 300000" autocomplete="off" required>
           <span class="unit">원</span>
         </div>
+        <label for="payday-input">용돈·월급 받는 날 (선택)</label>
+        <input id="payday-input" type="number" inputmode="numeric" min="1" max="31" placeholder="예: 25 (매달 25일)">
+        <p class="hint" style="margin:8px 0 0">정하면 그날 전날까지 쓸 돈으로 오늘 한도를 계산해요. 토·일이면 앞의 금요일에 받는다고 봐요. 비워 두면 월말까지로 계산해요.</p>
         <p id="budget-error" class="error" hidden></p>
         <button type="submit" class="primary">시작하기</button>
       </form>
@@ -94,10 +98,15 @@
         <p id="a-amount" class="a-amount">0원</p>
         <div id="a-coins" class="a-coins" aria-hidden="true"></div>
         <img id="a-hero" class="a-hero" alt="" src="assets/hero/femaleAdventurer/character_femaleAdventurer_idle.png">
+        <div id="a-goal" class="a-goal" hidden>
+          <span id="a-goal-label" class="a-goal-label"></span>
+          <svg viewBox="0 0 64 56" aria-hidden="true"><rect x="6" y="24" width="52" height="28" rx="4" fill="#b8742a" stroke="#6b3d12" stroke-width="3"/><path d="M6 28 Q6 8 32 8 Q58 8 58 28 Z" fill="#d68a36" stroke="#6b3d12" stroke-width="3"/><path d="M6 28 H58" stroke="#6b3d12" stroke-width="3"/><rect x="26" y="23" width="12" height="15" rx="2" fill="#ffd23f" stroke="#6b3d12" stroke-width="2.5"/><circle cx="32" cy="31" r="2" fill="#6b3d12"/></svg>
+          <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>
+        </div>
         <div id="a-bubble" class="a-bubble"></div>
         <div class="a-course" aria-hidden="true">
           <span id="a-course-text" class="a-course-text"></span>
-          <div class="a-track"><i id="a-track-fill"></i><img id="a-track-hero" alt="" src="assets/hero/femaleAdventurer/character_femaleAdventurer_idle.png"><b class="a-flag">🚩</b></div>
+          <div class="a-track"><i id="a-track-fill"></i><img id="a-track-hero" alt="" src="assets/hero/femaleAdventurer/character_femaleAdventurer_idle.png"><span class="a-flag a-flag-chest"><svg viewBox="0 0 64 56" aria-hidden="true"><rect x="6" y="24" width="52" height="28" rx="4" fill="#b8742a" stroke="#6b3d12" stroke-width="3"/><path d="M6 28 Q6 8 32 8 Q58 8 58 28 Z" fill="#d68a36" stroke="#6b3d12" stroke-width="3"/><path d="M6 28 H58" stroke="#6b3d12" stroke-width="3"/><rect x="26" y="23" width="12" height="15" rx="2" fill="#ffd23f" stroke="#6b3d12" stroke-width="2.5"/><circle cx="32" cy="31" r="2" fill="#6b3d12"/></svg></span></div>
         </div>
         <div class="a-vignette"></div>
       </div>
@@ -145,8 +154,8 @@
       <div class="card summary">
         <div><span>오늘 한도</span><strong id="today-limit">0원</strong></div>
         <div><span>오늘 쓴 돈</span><strong id="today-spent">0원</strong></div>
-        <div><span>이번 달 남은 예산</span><strong id="month-left">0원</strong></div>
-        <div><span>남은 일수(오늘 포함)</span><strong id="days-left">0일</strong></div>
+        <div><span id="month-left-label">이번 달 남은 예산</span><strong id="month-left">0원</strong></div>
+        <div><span id="days-left-label">남은 일수(오늘 포함)</span><strong id="days-left">0일</strong></div>
         <p id="reserved-note" class="reserved-note" hidden></p>
       </div>
 
@@ -278,6 +287,6 @@
     </section>
 
   </main>
-  <script src="app.js?v=20261127d"></script>
+  <script src="app.js?v=20261127e"></script>
 </body>
 </html>

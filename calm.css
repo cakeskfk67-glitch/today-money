@@ -278,3 +278,20 @@
 
 /* "예산 다시 설정"은 오늘 탭에서만 (다른 탭에서는 카드와 겹치지 않게 숨김) */
 .theme-calm body:has(#tab-today[hidden]) .top { display: none; }
+
+/* ===== 목적지: 보물상자 (용돈일) ===== */
+.theme-calm .a-goal { display: block; position: absolute; right: 16px; bottom: 54px; width: 68px; z-index: 2; transform: scale(var(--s, 0.8)); transform-origin: 50% 100%; transition: transform 1s ease-in-out; pointer-events: none; }
+.theme-calm .a-goal[hidden] { display: none; }
+.theme-calm .a-goal svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 4px 4px rgba(27, 37, 64, 0.25)); }
+.theme-calm .a-goal-label { position: absolute; left: 50%; top: -24px; transform: translateX(-50%); padding: 2px 9px; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #5b6cff, #8a5bff); border-radius: 999px; white-space: nowrap; box-shadow: 0 3px 8px rgba(91, 108, 255, 0.4); }
+.theme-calm .a-goal.near svg { animation: goal-bounce 1s ease-in-out infinite; }
+@keyframes goal-bounce { 50% { transform: translateY(-5px); } }
+.theme-calm .a-goal .spark { display: none; position: absolute; width: 8px; height: 8px; background: #ffd23f; border-radius: 2px; transform: rotate(45deg); box-shadow: 0 0 8px #ffd23f; animation: goal-twinkle 1.4s ease-in-out infinite; }
+.theme-calm .a-goal.near .spark { display: block; }
+.theme-calm .a-goal .s1 { left: -6px; top: 6px; }
+.theme-calm .a-goal .s2 { right: -4px; top: -4px; animation-delay: .4s; }
+.theme-calm .a-goal .s3 { right: 6px; top: 22px; animation-delay: .8s; width: 6px; height: 6px; }
+@keyframes goal-twinkle { 0%, 100% { opacity: 0.2; transform: rotate(45deg) scale(.6); } 50% { opacity: 1; transform: rotate(45deg) scale(1.1); } }
+.theme-calm .a-flag-chest { right: 0; top: -22px; width: 22px; display: block; }
+.theme-calm .a-flag-chest svg { display: block; width: 100%; height: auto; }
+.theme-calm .setup-note { background: #eef0ff; color: #3a47c9; }

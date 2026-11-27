@@ -303,3 +303,7 @@ button.mini { margin-top: 4px; padding: 5px 10px; font-size: 12px; font-weight: 
 /* 달력 탭 버튼에 "실제 금액을 확인해 주세요" 알림 점 */
 .tab { position: relative; }
 .tab.alert:after { content: ""; position: absolute; top: 8px; right: calc(50% - 26px); width: 8px; height: 8px; border-radius: 50%; background: #ff4d5e; }
+
+/* 용돈일 안내 / 목적지 */
+.setup-note { margin: 0 0 12px; padding: 10px 12px; font-size: 14px; font-weight: 800; color: var(--text); background: #fff6d6; border-radius: 12px; }
+.a-goal { display: none; }

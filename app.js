@@ -181,7 +181,9 @@ if (typeof document !== "undefined") {
 
   let state = load();
 
-  // 저장 형식: { budget, month, budgetStart, expenses, fixed, fixedActual, planned }
+  // 저장 형식: { budget, month, budgetStart, payday, periodEnd, expenses, fixed, fixedActual, planned }
+  //  payday: 매달 용돈·월급 받는 날(1~31) 또는 null(정하지 않음 → 월말까지로 계산)
+  //  periodEnd: 다음 용돈일 "YYYY-MM-DD" (payday 가 있을 때만)
   //  fixed: [{id, name, amount, day}]  매달 나가는 고정지출 (예정 금액, 결제일)
   //  fixedActual: {"YYYY-MM": {고정지출id: 실제 금액}}  결제일에 확인한 실제 금액
   //  planned: [{id, date, amount, memo}]  지출이 많을 것 같은 날과 예상 금액
@@ -194,10 +196,12 @@ if (typeof document !== "undefined") {
         if (!saved.fixedActual || typeof saved.fixedActual !== "object") saved.fixedActual = {};
         if (!Array.isArray(saved.planned)) saved.planned = [];
         if (!saved.budgetStart && saved.month) saved.budgetStart = saved.month + "-01";
+        if (!Number.isInteger(saved.payday)) saved.payday = null;
+        if (typeof saved.periodEnd !== "string") saved.periodEnd = null;
         return saved;
       }
     } catch (e) { /* 저장 데이터가 깨졌으면 새로 시작 */ }
-    return { budget: null, month: null, budgetStart: null, expenses: [], fixed: [], fixedActual: {}, planned: [] };
+    return { budget: null, month: null, budgetStart: null, payday: null, periodEnd: null, expenses: [], fixed: [], fixedActual: {}, planned: [] };
   }
 
   function save() {
@@ -218,11 +222,16 @@ if (typeof document !== "undefined") {
     const today = toDateString(new Date());
     const thisMonth = today.slice(0, 7);
 
-    // 예산이 없거나 달이 바뀌면 예산 입력 화면
-    if (state.budget === null || state.month !== thisMonth) {
+    // 예산이 없거나, 달이 바뀌었거나(용돈일이 있으면 용돈일이 되었으면) 예산 입력 화면
+    const usePayday = state.payday !== null && state.periodEnd !== null;
+    const needSetup = state.budget === null || (usePayday ? today >= state.periodEnd : state.month !== thisMonth);
+    if (needSetup) {
       $("main").hidden = true;
       $("setup").hidden = false;
       if (state.budget !== null) $("budget-input").value = state.budget;
+      $("payday-input").value = state.payday !== null ? state.payday : "";
+      const arrived = state.budget !== null && usePayday && today >= state.periodEnd;
+      $("setup-note").hidden = !arrived;
       return;
     }
 
@@ -230,9 +239,24 @@ if (typeof document !== "undefined") {
     $("main").hidden = false;
 
     // 이번 달 고정지출과 예정된 지출을 미리 빼고 계산한다
-    const fixedItems = buildFixedItems(state.fixed, thisMonth, state.fixedActual, state.budgetStart);
-    const plannedItems = state.planned.filter((x) => x.date.startsWith(thisMonth));
-    const r = calculate(state.budget, state.expenses, today, { fixed: fixedItems, planned: plannedItems });
+    // (용돈일이 있으면 지금부터 다음 용돈일 전날까지가 계산 기간. 달을 넘길 수 있다)
+    const period = usePayday ? { start: state.budgetStart, end: state.periodEnd } : null;
+    let fixedItems;
+    let plannedItems;
+    if (period) {
+      const months = new Set([period.start.slice(0, 7), thisMonth, period.end.slice(0, 7)]);
+      fixedItems = [];
+      for (const ym of [...months].sort()) {
+        for (const f of buildFixedItems(state.fixed, ym, state.fixedActual, state.budgetStart)) {
+          if (f.date < period.end) fixedItems.push(f);
+        }
+      }
+      plannedItems = state.planned.filter((x) => x.date >= period.start && x.date < period.end);
+    } else {
+      fixedItems = buildFixedItems(state.fixed, thisMonth, state.fixedActual, state.budgetStart);
+      plannedItems = state.planned.filter((x) => x.date.startsWith(thisMonth));
+    }
+    const r = calculate(state.budget, state.expenses, today, { fixed: fixedItems, planned: plannedItems, start: period && period.start, end: period && period.end });
 
     const fixedSum = fixedItems.reduce((s, x) => s + x.amount, 0);
     const plannedSum = plannedItems.filter((x) => x.date >= today).reduce((s, x) => s + x.amount, 0);
@@ -250,6 +274,8 @@ if (typeof document !== "undefined") {
     $("today-spent").textContent = won(r.spentToday);
     $("days-left").textContent = r.daysLeft + "일";
     $("month-left").textContent = (r.monthLeft < 0 ? "-" : "") + won(r.monthLeft);
+    $("month-left-label").textContent = period ? "다음 용돈일까지 남은 돈" : "이번 달 남은 예산";
+    $("days-left-label").textContent = period ? "용돈일까지 (오늘 포함)" : "남은 일수(오늘 포함)";
 
     const hero = document.querySelector(".hero");
     const p = progressInfo(r);
@@ -262,7 +288,7 @@ if (typeof document !== "undefined") {
     $("bar").setAttribute("aria-valuenow", String(p.percent));
 
     renderGame(r, p, today);
-    renderAdventure(r, p, today);
+    renderAdventure(r, p, today, period);
     renderList(thisMonth);
     renderStats(today);
   }
@@ -324,7 +350,7 @@ if (typeof document !== "undefined") {
     if (seq.ms) heroTimer = setInterval(step, seq.ms);
   }
 
-  function renderAdventure(r, p, today) {
+  function renderAdventure(r, p, today, period) {
     const scene = $("a-scene");
     scene.classList.remove("lv-ok", "lv-warn", "lv-bad");
     scene.classList.add("lv-" + p.level);
@@ -359,9 +385,24 @@ if (typeof document !== "undefined") {
     else msg = `조심! <b>${left}</b> 남았어요.`;
     $("a-bubble").innerHTML = msg;
 
-    // 월말까지 코스
-    const pct = (d / total) * 100 + "%";
-    $("a-course-text").textContent = `월말까지 ${d}일 / ${total}일`;
+    // 목적지까지의 코스: 용돈일이 있으면 "용돈일까지", 없으면 "월말까지"
+    let ratio;
+    const goal = $("a-goal");
+    if (period) {
+      const total2 = Math.max(1, daysBetween(period.start, period.end));
+      const left2 = Math.max(0, daysBetween(today, period.end));
+      ratio = Math.min(1, Math.max(0, (total2 - left2) / total2));
+      $("a-course-text").textContent = left2 === 1 ? "내일은 용돈일!" : `용돈일까지 D-${left2}`;
+      $("a-goal-label").textContent = left2 === 1 ? "내일!" : `D-${left2}`;
+      goal.classList.toggle("near", left2 <= 3);
+      goal.hidden = false;
+    } else {
+      ratio = d / total;
+      $("a-course-text").textContent = `월말까지 ${d}일 / ${total}일`;
+      goal.hidden = true;
+    }
+    goal.style.setProperty("--s", String(0.72 + 0.4 * ratio));
+    const pct = ratio * 100 + "%";
     $("a-track-fill").style.width = pct;
     $("a-track-hero").style.left = pct;
     $("a-track-hero").src = heroUrl("idle");
@@ -410,6 +451,7 @@ if (typeof document !== "undefined") {
   let editingFixedId = null;
   let editingPlannedId = null;
   let confirmingFixedId = null;
+  let confirmingMonth = null;
   let calCtx = null; // 가장 최근 화면 그리기에 쓴 값
 
   const el = (tag, cls, text) => {
@@ -623,6 +665,7 @@ if (typeof document !== "undefined") {
     const item = calCtx && calCtx.fixedItems.find((x) => x.id === id);
     if (!item) return;
     confirmingFixedId = id;
+    confirmingMonth = item.date.slice(0, 7);
     $("confirm-title").textContent = `${item.name} 실제 금액`;
     $("confirm-hint").textContent = `${Number(item.date.slice(5, 7))}월에는 얼마가 나갔나요? 예정액은 ${won(item.amount)}이에요.`;
     $("confirm-amount").value = item.amount;
@@ -630,7 +673,7 @@ if (typeof document !== "undefined") {
     openSheet("confirm");
   }
   function saveActual(id, amount) {
-    const ym = toDateString(new Date()).slice(0, 7);
+    const ym = confirmingMonth || toDateString(new Date()).slice(0, 7);
     if (!state.fixedActual[ym]) state.fixedActual[ym] = {};
     state.fixedActual[ym][id] = amount;
     save();
@@ -858,10 +901,19 @@ if (typeof document !== "undefined") {
       showError($("budget-error"), "1원 이상의 숫자를 입력해 주세요.");
       return;
     }
+    // 용돈 받는 날: 비워 두면 월말까지로 계산
+    const paydayText = $("payday-input").value.trim();
+    const payday = paydayText === "" ? null : Number(paydayText);
+    if (payday !== null && (!Number.isInteger(payday) || payday < 1 || payday > 31)) {
+      showError($("budget-error"), "용돈 받는 날은 1~31 사이의 숫자로 입력하거나 비워 두세요.");
+      return;
+    }
     showError($("budget-error"), "");
     state.budget = value;
     state.month = toDateString(new Date()).slice(0, 7);
     state.budgetStart = toDateString(new Date()); // 이 날 이전에 나간 고정지출은 입력한 예산에 이미 반영된 것으로 본다
+    state.payday = payday;
+    state.periodEnd = payday !== null ? nextPayday(state.budgetStart, payday) : null;
     save();
     render();
   });
