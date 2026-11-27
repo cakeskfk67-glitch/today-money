@@ -164,7 +164,14 @@ if (typeof document !== "undefined") {
   }
 
   // ===== adventure 디자인: 캐릭터가 달리는 장면 (다른 디자인에서는 숨겨져 있어 영향 없음) =====
-  const HERO_DIR = "assets/hero/character_maleAdventurer_";
+  // 캐릭터 6종 (Kenney CC0). 캐릭터를 탭하면 다음 캐릭터로 바뀌고 기억해 둔다.
+  const HEROES = ["maleAdventurer", "femaleAdventurer", "malePerson", "femalePerson", "robot", "zombie"];
+  const HERO_KEY = "today-money-hero";
+  let heroName = (() => {
+    try { const s = localStorage.getItem(HERO_KEY); if (HEROES.includes(s)) return s; } catch (e) { /* 무시 */ }
+    return HEROES[0];
+  })();
+  const heroUrl = (frame) => `assets/hero/${heroName}/character_${heroName}_${frame}.png`;
   const HERO_SEQ = {
     run: { frames: ["run0", "run1", "run2", "run1"], ms: 110 },
     walk: { frames: ["walk0", "walk1", "walk2", "walk3", "walk4", "walk5", "walk6", "walk7"], ms: 140 },
@@ -178,7 +185,26 @@ if (typeof document !== "undefined") {
   let heroLock = false; // 지출 직후 잠깐 "아야" 동작을 보여 주는 동안 true
 
   // 이미지를 미리 불러 두어 동작이 바뀔 때 깜빡이지 않게 한다
-  for (const seq of Object.values(HERO_SEQ)) for (const f of seq.frames) new Image().src = HERO_DIR + f + ".png";
+  function preloadHero() {
+    for (const seq of Object.values(HERO_SEQ)) for (const f of seq.frames) new Image().src = heroUrl(f);
+  }
+  preloadHero();
+
+  function nextHero() {
+    heroName = HEROES[(HEROES.indexOf(heroName) + 1) % HEROES.length];
+    try { localStorage.setItem(HERO_KEY, heroName); } catch (e) { /* 무시 */ }
+    preloadHero();
+    $("a-track-hero").src = heroUrl("idle");
+    const mode = heroMode;
+    heroMode = null;
+    setHeroMode(mode || "idle");
+    const img = $("a-hero");
+    img.classList.remove("swap");
+    void img.offsetWidth;
+    img.classList.add("swap");
+    setTimeout(() => img.classList.remove("swap"), 450);
+  }
+  $("a-hero").addEventListener("click", nextHero);
 
   function setHeroMode(mode) {
     if (mode === heroMode) return;
@@ -187,7 +213,7 @@ if (typeof document !== "undefined") {
     const img = $("a-hero");
     const seq = reduceMotion ? HERO_SEQ.idle : HERO_SEQ[mode];
     let i = 0;
-    const step = () => { img.src = HERO_DIR + seq.frames[i % seq.frames.length] + ".png"; i++; };
+    const step = () => { img.src = heroUrl(seq.frames[i % seq.frames.length]); i++; };
     step();
     if (seq.ms) heroTimer = setInterval(step, seq.ms);
   }
@@ -232,6 +258,7 @@ if (typeof document !== "undefined") {
     $("a-course-text").textContent = `월말까지 ${d}일 / ${total}일`;
     $("a-track-fill").style.width = pct;
     $("a-track-hero").style.left = pct;
+    $("a-track-hero").src = heroUrl("idle");
 
     // 캐릭터 동작: 오늘 안 썼으면 환호, 여유 있으면 달리기, 아슬아슬하면 걷기, 초과면 아야
     if (!heroLock) setHeroMode(p.level === "bad" ? "hurt" : p.level === "warn" ? "walk" : r.spentToday === 0 ? "cheer" : "run");

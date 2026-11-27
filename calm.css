@@ -26,17 +26,16 @@
 
 /* ===== 장면: 한 화면에 하나만 ===== */
 .theme-calm .a-scene {
-  height: 380px;
+  height: 400px;
   margin: 0 -16px 20px;
   border: 0;
   border-radius: 0 0 36px 36px;
   box-shadow: 0 14px 34px rgba(30, 40, 90, 0.12);
-  background: #cfeefc url("assets/bg/backgroundForest.png") repeat-x 0 100% / auto 470px;
-  animation: a-scroll-calm 60s linear infinite;
+  background: linear-gradient(var(--sky1), var(--sky2));
+  animation: none;
+  transition: --sky1 .9s, --sky2 .9s;
 }
-@keyframes a-scroll-calm { to { background-position: -470px 100%; } }
-.theme-calm .a-scene.lv-warn { animation-duration: 90s; }
-.theme-calm .a-scene.hit { animation: a-scroll-calm 60s linear infinite, a-shake .4s ease-in-out; }
+.theme-calm .a-scene.hit { animation: a-shake .4s ease-in-out; }
 
 /* 맨 위: 유리 칩 두 개만 (날짜, 이번 달 남은 예산) */
 .theme-calm .a-hud { top: 14px; left: 16px; right: 16px; }
@@ -69,7 +68,7 @@
 .theme-calm .a-scene.long .a-amount { font-size: 42px; top: 98px; }
 .theme-calm .a-scene.xlong .a-amount { font-size: 34px; top: 102px; }
 .theme-calm .a-scene.lv-warn .a-amount { color: #d9820b; }
-.theme-calm .a-scene.lv-bad .a-amount { color: #e5484d; animation: none; }
+.theme-calm .a-scene.lv-bad .a-amount { color: #ff8d95; animation: none; }
 
 /* 코인 10칸 → 얇은 게이지 한 줄 */
 .theme-calm .a-coins { top: 168px; left: 50%; right: auto; width: 62%; transform: translateX(-50%); gap: 4px; }
@@ -176,3 +175,88 @@
 .theme-calm .tabbar { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); }
 .theme-calm .tab { color: #9aa3bf; font-weight: 700; font-size: 14px; border-radius: 14px; padding: 12px 0; }
 .theme-calm .tab.on { color: #4a5bd8; background: #eef0ff; border: 0; box-shadow: none; padding: 12px 0; }
+
+/* ===== 겹겹이 흘러가는 배경 (층마다 속도가 다름) ===== */
+@property --sky1 { syntax: "<color>"; inherits: true; initial-value: #8fd0ff; }
+@property --sky2 { syntax: "<color>"; inherits: true; initial-value: #fff3e0; }
+
+.theme-calm .a-layers { display: block; position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+
+/* 시간대 색: 여유(아침) → 아슬아슬(노을) → 초과(저녁) */
+.theme-calm .a-scene {
+  --sky1: #8fd0ff; --sky2: #fff3e0;
+  --far: #c4d2f5; --mid: #adc0ee; --near: #9ab6e8; --gnd: #a9e1c1;
+  --sun: #ffe9a8; --sunglow: rgba(255, 225, 150, 0.85);
+  --tree: saturate(0.55) brightness(1.03); --cloud: 0.9;
+}
+.theme-calm .a-scene.lv-warn {
+  --sky1: #ffb878; --sky2: #ffe6c4;
+  --far: #f3bba8; --mid: #e8a39f; --near: #d58fa3; --gnd: #cfa7b8;
+  --sun: #ffcf7a; --sunglow: rgba(255, 170, 90, 0.9);
+  --tree: saturate(0.5) sepia(0.35) hue-rotate(-20deg) brightness(0.95); --cloud: 0.7;
+}
+.theme-calm .a-scene.lv-bad {
+  --sky1: #2b3566; --sky2: #6f5f9e;
+  --far: #4c5190; --mid: #3f447f; --near: #343870; --gnd: #2c3062;
+  --sun: #f4f1ff; --sunglow: rgba(210, 215, 255, 0.55);
+  --tree: saturate(0.4) brightness(0.45); --cloud: 0.18;
+}
+
+.theme-calm .ly { position: absolute; display: block; pointer-events: none; }
+.theme-calm .ly-sun { right: 34px; top: 62px; width: 52px; height: 52px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 46px 10px var(--sunglow); transition: background .9s, box-shadow .9s; }
+.theme-calm .a-scene.lv-warn .ly-sun { top: 150px; right: 70px; transition: all 1.2s; }
+
+/* 마스크로 층 모양을 잘라 원하는 색을 입힌다 */
+.theme-calm .ly-far, .theme-calm .ly-mid, .theme-calm .ly-near, .theme-calm .ly-ground {
+  left: 0; right: 0;
+  -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x;
+  -webkit-mask-size: auto 100%; mask-size: auto 100%;
+  animation: ly-move var(--t) linear infinite;
+  transition: background-color .9s;
+}
+.theme-calm .ly-far    { bottom: 80px; height: 160px; --w: 410px; --t: 110s; background-color: var(--far);
+  -webkit-mask-image: url("assets/bg/layers/mountains.png"); mask-image: url("assets/bg/layers/mountains.png"); -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+.theme-calm .ly-mid    { bottom: 56px; height: 150px; --w: 384px; --t: 70s;  background-color: var(--mid);
+  -webkit-mask-image: url("assets/bg/layers/hillsLarge.png"); mask-image: url("assets/bg/layers/hillsLarge.png"); -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+.theme-calm .ly-near   { bottom: 36px; height: 120px; --w: 307px; --t: 42s;  background-color: var(--near);
+  -webkit-mask-image: url("assets/bg/layers/hills.png"); mask-image: url("assets/bg/layers/hills.png"); -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+.theme-calm .ly-ground { bottom: 0; height: 96px; --w: 246px; --t: 20s; background-color: var(--gnd);
+  -webkit-mask-image: url("assets/bg/layers/groundLayer1.png"); mask-image: url("assets/bg/layers/groundLayer1.png"); -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+@keyframes ly-move { to { -webkit-mask-position: calc(var(--w) * -1) 100%; mask-position: calc(var(--w) * -1) 100%; } }
+/* 아슬아슬하면 느려지고, 초과하면 멈춘다 */
+.theme-calm .a-scene.lv-warn .ly-far, .theme-calm .a-scene.lv-warn .ly-mid, .theme-calm .a-scene.lv-warn .ly-near, .theme-calm .a-scene.lv-warn .ly-ground { animation-duration: calc(var(--t) * 1.8); }
+.theme-calm .a-scene.lv-bad .ly-far, .theme-calm .a-scene.lv-bad .ly-mid, .theme-calm .a-scene.lv-bad .ly-near, .theme-calm .a-scene.lv-bad .ly-ground { animation-play-state: paused; }
+
+/* 나무: 같은 무늬 두 장을 이어 붙여 끝없이 흘러가게 */
+.theme-calm .ly-trees { position: absolute; left: 0; bottom: 58px; display: flex; width: max-content; animation: ly-trees 30s linear infinite; filter: var(--tree); opacity: 0.95; transition: filter .9s; }
+.theme-calm .ly-trees .tile { width: 620px; display: flex; justify-content: space-around; align-items: flex-end; flex-shrink: 0; }
+.theme-calm .ly-trees img { display: block; }
+.theme-calm .ly-trees img:nth-child(odd) { height: 74px; width: auto; }
+.theme-calm .ly-trees img:nth-child(even) { height: 92px; width: auto; }
+@keyframes ly-trees { to { transform: translateX(-620px); } }
+.theme-calm .a-scene.lv-warn .ly-trees { animation-duration: 54s; }
+.theme-calm .a-scene.lv-bad .ly-trees { animation-play-state: paused; }
+
+/* 구름 */
+.theme-calm .ly-cloud { position: absolute; width: 96px; height: auto; opacity: var(--cloud); animation: ly-cloud linear infinite; transition: opacity .9s; }
+.theme-calm .lc1 { top: 44px; animation-duration: 90s; animation-delay: -20s; }
+.theme-calm .lc2 { top: 130px; width: 70px; animation-duration: 130s; animation-delay: -70s; }
+.theme-calm .lc3 { top: 86px; width: 60px; animation-duration: 160s; animation-delay: -110s; }
+@keyframes ly-cloud { from { transform: translateX(-140px); } to { transform: translateX(520px); } }
+
+/* 장면 안 글자·게이지는 층 위에 */
+.theme-calm .a-hud, .theme-calm .a-label, .theme-calm .a-amount, .theme-calm .a-coins, .theme-calm .a-bubble, .theme-calm .a-course { z-index: 3; }
+
+/* 저녁(초과) 배경에서는 글자를 밝게 */
+.theme-calm .a-scene.lv-bad .a-label, .theme-calm .a-scene.lv-bad .a-bubble, .theme-calm .a-scene.lv-bad .a-course-text { color: rgba(255, 255, 255, 0.78); }
+.theme-calm .a-scene.lv-bad .a-bubble b { color: #fff; }
+.theme-calm .a-scene.lv-bad .a-coins i.gone { background: rgba(255, 255, 255, 0.25); }
+.theme-calm .a-scene.lv-bad .a-track { background: rgba(255, 255, 255, 0.2); }
+
+/* 캐릭터를 탭하면 바뀐다 */
+.theme-calm .a-hero { cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.theme-calm .a-scene .a-hero.swap { animation: hero-swap .4s ease-out; }
+@keyframes hero-swap { 0% { transform: translateX(-50%) scale(.6); opacity: .3; } 60% { transform: translateX(-50%) scale(1.12); } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+/* 저녁(초과) 장면에서는 위쪽 작은 링크도 밝게 */
+.theme-calm body:has(.a-scene.lv-bad) button.link { color: rgba(255, 255, 255, 0.65); }

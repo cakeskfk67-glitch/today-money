@@ -69,6 +69,21 @@
       <div id="tab-today" class="tab-panel">
       <!-- adventure 디자인 전용: 캐릭터가 달리는 장면 (다른 디자인에서는 숨김) -->
       <div id="a-scene" class="a-only a-scene">
+        <!-- 겹겹이 다른 속도로 흘러가는 배경 (calm 디자인에서만 보임) -->
+        <div class="a-layers" aria-hidden="true">
+          <i class="ly ly-sun"></i>
+          <img class="ly-cloud lc1" alt="" src="assets/bg/layers/cloud1.png">
+          <img class="ly-cloud lc2" alt="" src="assets/bg/layers/cloud3.png">
+          <img class="ly-cloud lc3" alt="" src="assets/bg/layers/cloud5.png">
+          <i class="ly ly-far"></i>
+          <i class="ly ly-mid"></i>
+          <i class="ly ly-near"></i>
+          <div class="ly-trees">
+            <div class="tile"><img alt="" src="assets/bg/layers/tree.png"><img alt="" src="assets/bg/layers/treeLong.png"><img alt="" src="assets/bg/layers/tree.png"><img alt="" src="assets/bg/layers/treeLong.png"></div>
+            <div class="tile"><img alt="" src="assets/bg/layers/tree.png"><img alt="" src="assets/bg/layers/treeLong.png"><img alt="" src="assets/bg/layers/tree.png"><img alt="" src="assets/bg/layers/treeLong.png"></div>
+          </div>
+          <i class="ly ly-ground"></i>
+        </div>
         <div class="a-hud">
           <span id="a-date" class="a-pill"></span>
           <span id="a-days" class="a-pill"></span>
@@ -77,11 +92,11 @@
         <p id="a-label" class="a-label">오늘 쓸 수 있는 돈</p>
         <p id="a-amount" class="a-amount">0원</p>
         <div id="a-coins" class="a-coins" aria-hidden="true"></div>
-        <img id="a-hero" class="a-hero" alt="" src="assets/hero/character_maleAdventurer_idle.png">
+        <img id="a-hero" class="a-hero" alt="" src="assets/hero/maleAdventurer/character_maleAdventurer_idle.png">
         <div id="a-bubble" class="a-bubble"></div>
         <div class="a-course" aria-hidden="true">
           <span id="a-course-text" class="a-course-text"></span>
-          <div class="a-track"><i id="a-track-fill"></i><img id="a-track-hero" alt="" src="assets/hero/character_maleAdventurer_idle.png"><b class="a-flag">🚩</b></div>
+          <div class="a-track"><i id="a-track-fill"></i><img id="a-track-hero" alt="" src="assets/hero/maleAdventurer/character_maleAdventurer_idle.png"><b class="a-flag">🚩</b></div>
         </div>
         <div class="a-vignette"></div>
       </div>
