@@ -172,7 +172,7 @@ if (typeof document !== "undefined") {
     try { const s = localStorage.getItem(HERO_KEY); if (HEROES.includes(s)) return s; } catch (e) { /* 무시 */ }
     return HEROES[0];
   })();
-  const heroUrl = (frame) => `assets/hero/${heroName}/character_${heroName}_${frame}.png`;
+  const heroUrl = (frame) => `assets/hero/${heroName}/character_${heroName}_${frame}.png?v=${window.APP_VERSION || ""}`;
   const HERO_SEQ = {
     run: { frames: ["run0", "run1", "run2", "run1"], ms: 110 },
     walk: { frames: ["walk0", "walk1", "walk2", "walk3", "walk4", "walk5", "walk6", "walk7"], ms: 140 },
