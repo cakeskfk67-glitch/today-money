@@ -20,7 +20,14 @@
         document.head.appendChild(link);
       }
       // adventure: 장면(캐릭터가 달리는 초원)과 하단 입력창이 있는 게임 화면 디자인. 단독으로 쓰는 스타일 파일.
-      if (t === "adventure" || !t) {
+      // calm: adventure 와 같은 장면을 더 차분하고 정돈된 모습으로 덮어쓴 버전 (기본 디자인)
+      if (t === "calm" || !t) {
+        root.classList.add("theme-adventure", "theme-calm");
+        addCss("adventure");
+        addCss("calm");
+        return;
+      }
+      if (t === "adventure") {
         root.classList.add("theme-adventure");
         addCss("adventure");
         return;

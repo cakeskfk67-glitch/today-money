@@ -1,0 +1,178 @@
+/* calm 디자인: adventure.css 위에 덮어써서 "차분하고 정돈된" 모습으로 만든다.
+   원칙: 한눈에 보이는 것은 하나(오늘 남은 돈). 굵은 외곽선·원색을 걷어내고, 색은 포인트 하나(보라빛 파랑)만 쓴다. */
+
+:root.theme-calm {
+  --ink: #1b2540;
+  --bg: #f3f5fa;
+  --text: #1b2540;
+  --muted: #7a84a3;
+  --primary: #5b6cff;
+  --ok: #1b2540;
+  --warn: #d9820b;
+  --bad: #e5484d;
+  --line: #e8ebf3;
+}
+
+.theme-calm body { background: #f3f5fa; color: var(--text); background-image: none; }
+.theme-calm .app { padding-top: 0; }
+
+/* 위쪽 "예산 다시 설정"은 눈에 덜 띄게 */
+.theme-calm .top { position: absolute; z-index: 6; right: 14px; top: 46px; padding: 0; }
+.theme-calm button.link { color: rgba(27, 37, 64, 0.5); font-size: 12px; font-weight: 700; text-decoration: none; }
+
+/* ===== 카드: 테두리 대신 부드러운 그림자 ===== */
+.theme-calm .card { border: 0; border-radius: 24px; box-shadow: 0 8px 28px rgba(30, 40, 90, 0.08); }
+.theme-calm h2 { font-size: 17px; font-weight: 800; }
+
+/* ===== 장면: 한 화면에 하나만 ===== */
+.theme-calm .a-scene {
+  height: 380px;
+  margin: 0 -16px 20px;
+  border: 0;
+  border-radius: 0 0 36px 36px;
+  box-shadow: 0 14px 34px rgba(30, 40, 90, 0.12);
+  background: #cfeefc url("assets/bg/backgroundForest.png") repeat-x 0 100% / auto 470px;
+  animation: a-scroll-calm 60s linear infinite;
+}
+@keyframes a-scroll-calm { to { background-position: -470px 100%; } }
+.theme-calm .a-scene.lv-warn { animation-duration: 90s; }
+.theme-calm .a-scene.hit { animation: a-scroll-calm 60s linear infinite, a-shake .4s ease-in-out; }
+
+/* 맨 위: 유리 칩 두 개만 (날짜, 이번 달 남은 예산) */
+.theme-calm .a-hud { top: 14px; left: 16px; right: 16px; }
+.theme-calm .a-pill {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 0;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  color: var(--ink);
+}
+.theme-calm #a-days { display: none; }
+.theme-calm .a-pill-coin { background: rgba(255, 255, 255, 0.6); }
+.theme-calm .a-pill-coin:before { width: 9px; height: 9px; border: 0; background: #f5b82e; box-shadow: none; margin-right: 6px; vertical-align: 0; }
+
+/* 큰 숫자: 외곽선 없이 깔끔하게 */
+.theme-calm .a-label { top: 70px; font-size: 13px; font-weight: 700; color: rgba(27, 37, 64, 0.6); text-shadow: none; letter-spacing: 0.3px; }
+.theme-calm .a-amount {
+  top: 92px;
+  font-size: 54px;
+  font-weight: 800;
+  color: var(--ink);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  letter-spacing: -1.5px;
+}
+.theme-calm .a-scene.long .a-amount { font-size: 42px; top: 98px; }
+.theme-calm .a-scene.xlong .a-amount { font-size: 34px; top: 102px; }
+.theme-calm .a-scene.lv-warn .a-amount { color: #d9820b; }
+.theme-calm .a-scene.lv-bad .a-amount { color: #e5484d; animation: none; }
+
+/* 코인 10칸 → 얇은 게이지 한 줄 */
+.theme-calm .a-coins { top: 168px; left: 50%; right: auto; width: 62%; transform: translateX(-50%); gap: 4px; }
+.theme-calm .a-coins i { aspect-ratio: auto; height: 7px; border-radius: 99px; border: 0; box-shadow: none; animation: none; background: #5b6cff; }
+.theme-calm .a-scene.lv-warn .a-coins i { background: #f0a020; }
+.theme-calm .a-scene.lv-bad .a-coins i { background: #e5484d; }
+.theme-calm .a-coins i.gone { background: rgba(27, 37, 64, 0.14); }
+
+/* 말풍선 → 숫자 아래 한 줄 설명 */
+.theme-calm .a-bubble {
+  left: 24px;
+  right: 24px;
+  top: 190px;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(27, 37, 64, 0.65);
+}
+.theme-calm .a-bubble:before, .theme-calm .a-bubble:after { display: none; }
+.theme-calm .a-bubble b { color: var(--ink); font-weight: 800; }
+
+/* 캐릭터: 가운데, 작게 */
+.theme-calm .a-scene::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 50px;
+  width: 96px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(27, 37, 64, 0.22), transparent 70%);
+  z-index: 1;
+}
+.theme-calm .a-hero { left: 50%; transform: translateX(-50%); bottom: 54px; height: 120px; filter: none; }
+.theme-calm .a-scene.lv-ok .a-hero { animation: a-bob-calm .24s ease-in-out infinite; }
+@keyframes a-bob-calm { 50% { transform: translateX(-50%) translateY(-4px); } }
+
+/* 월말 코스: 얇은 한 줄 */
+.theme-calm .a-course { left: 18px; right: 18px; bottom: 16px; display: flex; flex-direction: row-reverse; align-items: center; gap: 10px; }
+.theme-calm .a-course-text { margin: 0; font-size: 11px; font-weight: 700; color: rgba(27, 37, 64, 0.6); text-shadow: none; white-space: nowrap; }
+.theme-calm .a-track { flex: 1; height: 6px; border: 0; background: rgba(27, 37, 64, 0.12); }
+.theme-calm .a-track i { background: #5b6cff; }
+.theme-calm .a-track img { top: -26px; height: 28px; }
+.theme-calm .a-flag { top: -18px; font-size: 13px; }
+
+.theme-calm .a-vignette { transition: box-shadow .5s; }
+.theme-calm .a-scene.lv-bad .a-vignette { box-shadow: inset 0 -70px 70px -30px rgba(229, 72, 77, 0.35); }
+
+.theme-calm .a-float { color: #e5484d; -webkit-text-stroke: 0; text-shadow: 0 2px 8px rgba(255, 255, 255, 0.9); font-size: 30px; }
+
+/* ===== 요약 카드 ===== */
+.theme-calm .summary { gap: 18px 10px; }
+.theme-calm .summary span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.theme-calm .summary strong { font-size: 18px; font-weight: 800; }
+
+/* ===== 버튼·입력 ===== */
+.theme-calm .a-fab {
+  bottom: 84px;
+  padding: 17px;
+  font-size: 17px;
+  font-weight: 800;
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #5b6cff, #8a5bff);
+  box-shadow: 0 12px 26px rgba(91, 108, 255, 0.4);
+  text-shadow: none;
+  animation: none;
+}
+.theme-calm .a-fab:active { transform: scale(0.98); box-shadow: 0 6px 14px rgba(91, 108, 255, 0.4); }
+.theme-calm button.primary {
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #5b6cff, #8a5bff);
+  box-shadow: 0 10px 22px rgba(91, 108, 255, 0.35);
+  text-shadow: none;
+  font-weight: 800;
+}
+.theme-calm button.primary:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(91, 108, 255, 0.35); }
+.theme-calm button.secondary { border: 0; background: #eef0f8; color: var(--ink); border-radius: 16px; }
+.theme-calm input, .theme-calm select { background: #f3f5fa; border: 2px solid transparent; border-radius: 14px; font-weight: 600; }
+.theme-calm input:focus, .theme-calm select:focus { background: #fff; border-color: #5b6cff; box-shadow: 0 0 0 4px rgba(91, 108, 255, 0.15); }
+.theme-calm #expense-form { border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(30, 40, 90, 0.2); }
+.theme-calm .a-close { border: 0; background: #eef0f8; box-shadow: none; font-size: 20px; }
+.theme-calm .a-backdrop { background: rgba(27, 37, 64, 0.45); }
+
+/* ===== 목록·통계 ===== */
+.theme-calm .list li { border-bottom: 1px solid var(--line); }
+.theme-calm .list .tag { color: #4a5bd8; background: #eef0ff; border: 0; font-weight: 700; }
+.theme-calm .list .actions button { color: var(--muted); font-weight: 700; }
+.theme-calm .list .actions button.danger { color: var(--bad); }
+.theme-calm li.editing { background: #fff7e3; }
+.theme-calm .cat-track { background: #eef0f8; border: 0; height: 8px; }
+.theme-calm .cat-fill { background: linear-gradient(90deg, #5b6cff, #8a5bff); }
+.theme-calm .day-bar { background: #cfd5ff; border: 0; border-radius: 4px 4px 0 0; }
+.theme-calm .day-bar.zero { background: #eef0f8; }
+.theme-calm .day-bar.today { background: #5b6cff; }
+
+/* ===== 하단 탭 ===== */
+.theme-calm .tabbar { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); }
+.theme-calm .tab { color: #9aa3bf; font-weight: 700; font-size: 14px; border-radius: 14px; padding: 12px 0; }
+.theme-calm .tab.on { color: #4a5bd8; background: #eef0ff; border: 0; box-shadow: none; padding: 12px 0; }
