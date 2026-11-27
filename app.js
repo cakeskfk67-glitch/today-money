@@ -52,15 +52,43 @@ function buildFixedItems(fixedList, ym, actual, startDate) {
 // plan(선택): { fixed: [{date, amount}], planned: [{date, amount}] }
 // 규칙: 오늘 한도 = (월 예산 - 오늘 이전 이번 달 지출 - 이번 달 고정지출 - 오늘 이후 예정된 지출) ÷ 오늘 포함 남은 일수
 //       + 오늘 예정된 지출(지출이 많은 날로 미리 적어 둔 금액)
+// 두 날짜("YYYY-MM-DD") 사이의 일수 (to - from)
+function daysBetween(from, to) {
+  const t = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((t(to) - t(from)) / 86400000);
+}
+
+// 용돈·월급 받는 날: 매달 `day`일. 그 달에 없는 날이면 마지막 날, 토·일이면 앞의 금요일에 받는다고 본다.
+function adjustPayday(year, month, day) {
+  const target = new Date(year, month - 1, Math.min(day, daysInMonth(year, month)));
+  const dow = target.getDay();
+  if (dow === 6) target.setDate(target.getDate() - 1);
+  else if (dow === 0) target.setDate(target.getDate() - 2);
+  return toDateString(target);
+}
+
+// 오늘 이후(오늘은 제외) 처음 오는 용돈일. 오늘이 용돈일이면 다음 달 용돈일.
+function nextPayday(today, day) {
+  const [y, m] = today.split("-").map(Number);
+  const thisMonth = adjustPayday(y, m, day);
+  if (thisMonth > today) return thisMonth;
+  return m === 12 ? adjustPayday(y + 1, 1, day) : adjustPayday(y, m + 1, day);
+}
+
+// today: "YYYY-MM-DD", expenses: [{amount, date}], budget: 숫자
+// plan(선택): { fixed: [{date, amount}], planned: [{date, amount}], start, end }
+//   start/end("YYYY-MM-DD")를 주면 용돈일 기준: start 이후 지출만 세고, 남은 일수는 end(다음 용돈일) 전날까지.
+//   주지 않으면 예전처럼 이번 달 기준(월말까지).
 function calculate(budget, expenses, today, plan) {
   const [y, m, d] = today.split("-").map(Number);
   const monthPrefix = today.slice(0, 7);
-  const daysLeft = daysInMonth(y, m) - d + 1;
+  const range = plan && plan.start && plan.end ? { start: plan.start, end: plan.end } : null;
+  const daysLeft = range ? Math.max(1, daysBetween(today, range.end)) : daysInMonth(y, m) - d + 1;
 
   let spentBefore = 0;
   let spentToday = 0;
   for (const e of expenses) {
-    if (!e.date.startsWith(monthPrefix)) continue; // 다른 달 지출은 제외
+    if (range ? e.date < range.start : !e.date.startsWith(monthPrefix)) continue; // 기간 밖(다른 달) 지출은 제외
     if (e.date < today) spentBefore += e.amount;
     else if (e.date === today) spentToday += e.amount;
   }
@@ -69,9 +97,10 @@ function calculate(budget, expenses, today, plan) {
   let plannedRemaining = 0; // 오늘을 포함해 앞으로 예정된 금액
   let plannedToday = 0;
   if (plan) {
-    for (const f of plan.fixed || []) if (f.date.startsWith(monthPrefix)) fixedTotal += f.amount;
+    const inPeriod = (date) => (range ? date >= range.start && date < range.end : date.startsWith(monthPrefix));
+    for (const f of plan.fixed || []) if (inPeriod(f.date)) fixedTotal += f.amount;
     for (const p of plan.planned || []) {
-      if (!p.date.startsWith(monthPrefix) || p.date < today) continue;
+      if (!inPeriod(p.date) || p.date < today) continue;
       plannedRemaining += p.amount;
       if (p.date === today) plannedToday += p.amount;
     }
@@ -137,7 +166,7 @@ function monthStats(expenses, today) {
 
 // 테스트(node)에서 불러 쓸 수 있게 내보내기
 if (typeof module !== "undefined") {
-  module.exports = { calculate, progressInfo, monthStats, toDateString, daysInMonth, adjustPayDate, buildFixedItems };
+  module.exports = { calculate, progressInfo, monthStats, toDateString, daysInMonth, adjustPayDate, buildFixedItems, adjustPayday, nextPayday, daysBetween };
 }
 
 // ===== 화면과 저장 (브라우저에서만 실행) =====

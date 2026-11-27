@@ -1,6 +1,6 @@
 // 실행: node test.js
 const assert = require("assert");
-const { calculate, progressInfo, monthStats, adjustPayDate, buildFixedItems } = require("./app.js");
+const { calculate, progressInfo, monthStats, adjustPayDate, buildFixedItems, adjustPayday, nextPayday, daysBetween } = require("./app.js");
 
 const eq = (actual, expected, name) => {
   assert.deepStrictEqual(actual, expected, name);
@@ -139,5 +139,38 @@ eq(calculate(100000, [], "2026-11-01", { fixed: [{ date: "2026-11-16", amount: 1
 const plan16 = { fixed: [{ date: "2026-11-16", amount: 50000 }] };
 eq(calculate(300000, [], "2026-11-16", plan16).monthLeft, 250000, "결제일 당일에도 이번 달 남은 예산은 그대로");
 eq(calculate(300000, [], "2026-11-17", plan16).monthLeft, 250000, "결제일 이후에도 이번 달 남은 예산은 그대로");
+
+// ===== 용돈일(월급일) 기준 =====
+eq(adjustPayday(2026, 11, 25), "2026-11-25", "용돈일: 평일(수)이면 그대로");
+eq(adjustPayday(2026, 10, 25), "2026-10-23", "용돈일: 일요일이면 앞의 금요일");
+eq(adjustPayday(2026, 11, 28), "2026-11-27", "용돈일: 토요일이면 앞의 금요일");
+eq(adjustPayday(2026, 11, 31), "2026-11-30", "용돈일: 31일 지정, 11월은 30일(월)");
+eq(nextPayday("2026-11-20", 25), "2026-11-25", "다음 용돈일: 이번 달 용돈일이 아직 안 지남");
+eq(nextPayday("2026-11-25", 25), "2026-12-25", "다음 용돈일: 오늘이 용돈일이면 다음 달");
+eq(nextPayday("2026-11-26", 25), "2026-12-25", "다음 용돈일: 이미 지났으면 다음 달");
+eq(nextPayday("2026-12-26", 25), "2027-01-25", "다음 용돈일: 12월 → 이듬해 1월");
+eq(nextPayday("2026-10-23", 25), "2026-11-25", "다음 용돈일: 주말이라 금요일(23일)로 당겨진 날 당일이면 다음 달");
+eq(daysBetween("2026-11-20", "2026-11-25"), 5, "일수 차이");
+eq(daysBetween("2026-12-31", "2027-01-05"), 5, "일수 차이: 해를 넘김");
+
+const p1 = { start: "2026-11-01", end: "2026-11-25" };
+eq(calculate(300000, [{ amount: 100000, date: "2026-11-10" }], "2026-11-20", p1).todayLimit, 40000,
+  "용돈일 기준: 25일까지 5일 (200000÷5)");
+eq(calculate(300000, [], "2026-11-24", p1).daysLeft, 1, "용돈일 전날은 남은 일수 1일");
+
+const p2 = { start: "2026-11-25", end: "2026-12-25" };
+eq(calculate(300000, [{ amount: 60000, date: "2026-11-28" }], "2026-12-02", p2).todayLimit, 10434,
+  "용돈일 기준: 달을 넘겨도 지난 달 지출 포함 (240000÷23)");
+eq(calculate(300000, [{ amount: 99999, date: "2026-11-24" }], "2026-12-02", p2).todayLimit, 13043,
+  "용돈일 기준: 기간 시작 전 지출은 제외 (300000÷23)");
+eq(calculate(300000, [{ amount: 60000, date: "2026-11-28" }], "2026-12-02",
+  { ...p2, planned: [{ date: "2026-12-10", amount: 30000 }] }).todayLimit, 9130,
+  "용돈일 기준: 다음 달에 있는 예정 지출도 미리 뺌 (210000÷23)");
+eq(calculate(300000, [{ amount: 60000, date: "2026-11-28" }], "2026-12-02",
+  { ...p2, planned: [{ date: "2026-12-25", amount: 30000 }] }).todayLimit, 10434,
+  "용돈일 기준: 용돈일 당일 이후의 예정은 무시");
+eq(calculate(300000, [{ amount: 60000, date: "2026-11-28" }], "2026-12-02",
+  { ...p2, fixed: [{ date: "2026-12-15", amount: 50000 }] }).todayLimit, 8260,
+  "용돈일 기준: 기간 안의 고정지출 반영 (190000÷23)");
 
 console.log("\n모든 테스트 통과");
