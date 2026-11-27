@@ -165,7 +165,8 @@ if (typeof document !== "undefined") {
 
   // ===== adventure 디자인: 캐릭터가 달리는 장면 (다른 디자인에서는 숨겨져 있어 영향 없음) =====
   // 캐릭터 6종 (Kenney CC0). 캐릭터를 탭하면 다음 캐릭터로 바뀌고 기억해 둔다.
-  const HEROES = ["maleAdventurer", "femaleAdventurer", "malePerson", "femalePerson", "robot", "zombie"];
+  // 맨 앞이 기본 캐릭터 (여자 모험가)
+  const HEROES = ["femaleAdventurer", "maleAdventurer", "malePerson", "femalePerson", "robot", "zombie"];
   const HERO_KEY = "today-money-hero";
   let heroName = (() => {
     try { const s = localStorage.getItem(HERO_KEY); if (HEROES.includes(s)) return s; } catch (e) { /* 무시 */ }
