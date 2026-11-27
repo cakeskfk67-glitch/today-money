@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>오늘 쓸 수 있는 돈</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // 주소 끝에 ?theme=game 을 붙이면 게임식 디자인, 없으면 기본(토스식)
+    (function () {
+      var t = new URLSearchParams(location.search).get("theme");
+      if (t === "game") {
+        document.documentElement.classList.add("theme-game");
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "game.css";
+        document.head.appendChild(link);
+      }
+    })();
+  </script>
 </head>
 <body>
   <main class="app">
@@ -33,13 +46,44 @@
 
       <div id="tab-today" class="tab-panel">
       <div class="card hero">
+        <!-- 게임식 디자인에서만 보이는 캐릭터·말풍선 -->
+        <div class="g-only g-npc" aria-hidden="true">
+          <div class="g-face">
+            <svg viewBox="0 0 60 60">
+              <ellipse cx="20" cy="56" rx="8" ry="4" fill="#3a2a12"/>
+              <ellipse cx="40" cy="56" rx="8" ry="4" fill="#3a2a12"/>
+              <circle cx="30" cy="31" r="25" fill="#ff9a3c" stroke="#3a2a12" stroke-width="3"/>
+              <circle cx="16" cy="38" r="4" fill="#ff6f61" opacity=".6"/>
+              <circle cx="44" cy="38" r="4" fill="#ff6f61" opacity=".6"/>
+              <ellipse class="g-eye" cx="22" cy="28" rx="3.2" ry="4.6" fill="#3a2a12"/>
+              <ellipse class="g-eye" cx="38" cy="28" rx="3.2" ry="4.6" fill="#3a2a12"/>
+              <circle cx="23" cy="26.5" r="1.2" fill="#fff"/>
+              <circle cx="39" cy="26.5" r="1.2" fill="#fff"/>
+              <g class="g-mouth m-ok"><path d="M22 40 Q30 49 38 40" fill="none" stroke="#3a2a12" stroke-width="3" stroke-linecap="round"/></g>
+              <g class="g-mouth m-warn"><path d="M23 44 Q30 40 37 44" fill="none" stroke="#3a2a12" stroke-width="3" stroke-linecap="round"/><path d="M48 14 q3 4 0 7 q-3 -3 0 -7" fill="#6ecbff" stroke="#3a2a12" stroke-width="1.5"/></g>
+              <g class="g-mouth m-bad"><path d="M23 46 Q30 38 37 46" fill="none" stroke="#3a2a12" stroke-width="3" stroke-linecap="round"/><path class="g-tear" d="M20 34 q3 5 0 8 q-3 -3 0 -8" fill="#6ecbff" stroke="#3a2a12" stroke-width="1.5"/></g>
+            </svg>
+          </div>
+          <div id="g-bubble" class="g-bubble"></div>
+        </div>
         <p class="hero-title">오늘 쓸 수 있는 돈</p>
         <p id="today-left" class="hero-amount">0원</p>
         <div id="bar" class="bar" role="progressbar" aria-label="오늘 한도 사용률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="bar-fill" class="bar-fill"></div>
         </div>
+        <div id="g-coins" class="g-only g-coins" aria-hidden="true"></div>
         <p id="bar-label" class="bar-label"></p>
         <p id="today-status" class="hero-status"></p>
+        <div class="g-only g-course" aria-hidden="true">
+          <p id="g-course-text" class="g-course-text"></p>
+          <div class="g-road">
+            <div id="g-done" class="g-done"></div>
+            <div id="g-walker" class="g-walker">
+              <svg viewBox="0 0 60 60"><circle cx="30" cy="32" r="24" fill="#ff9a3c" stroke="#3a2a12" stroke-width="5"/><circle cx="22" cy="28" r="4" fill="#3a2a12"/><circle cx="38" cy="28" r="4" fill="#3a2a12"/></svg>
+            </div>
+            <span class="g-flag">🚩</span>
+          </div>
+        </div>
       </div>
 
       <div class="card summary">

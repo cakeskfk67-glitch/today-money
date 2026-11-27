@@ -1,0 +1,139 @@
+/* 게임식 디자인 (코인·코스 느낌). index.html 주소 끝에 ?theme=game 을 붙이면 적용된다.
+   style.css 위에 덮어쓰는 파일이라 기능과 계산에는 영향이 없다. */
+
+:root.theme-game {
+  --bg: #bde9ff;
+  --card: #fffdf3;
+  --text: #3a2a12;
+  --muted: #7a6540;
+  --primary: #e0402f;
+  --ok: #3f9b4b;
+  --warn: #e07a00;
+  --bad: #c4161c;
+  --line: #e6d9ae;
+}
+
+.theme-game body {
+  background: linear-gradient(#5ec2ff 0, #bde9ff 45%, #e9f8ff 100%) fixed;
+}
+
+/* 카드: 두꺼운 테두리 + 아래 그림자 */
+.theme-game .card {
+  border: 3px solid #3a2a12;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #3a2a12;
+}
+
+.theme-game input,
+.theme-game select {
+  border: 3px solid #3a2a12;
+  border-radius: 12px;
+  background: #fff;
+}
+.theme-game input:focus,
+.theme-game select:focus { outline: 3px solid #ffd23f; border-color: #3a2a12; }
+
+.theme-game button.primary {
+  border: 3px solid #3a2a12;
+  border-radius: 12px;
+  background: #ff5a4f;
+  box-shadow: 0 4px 0 #a82a22;
+  font-weight: 900;
+}
+.theme-game button.primary:active { opacity: 1; transform: translateY(3px); box-shadow: 0 1px 0 #a82a22; }
+.theme-game button.secondary { border: 3px solid #3a2a12; border-radius: 12px; font-weight: 700; }
+.theme-game .top { color: #3a2a12; font-weight: 800; }
+.theme-game button.link { color: #3a2a12; font-weight: 800; text-decoration: underline; }
+.theme-game h1, .theme-game h2 { font-weight: 900; }
+
+/* 큰 숫자 */
+.theme-game .hero-amount { font-weight: 900; text-shadow: 2px 2px 0 #ffd23f; }
+.theme-game .hero.bad .hero-amount { animation: g-pulse .8s ease-in-out infinite; }
+@keyframes g-pulse { 50% { transform: scale(1.05); } }
+
+/* 막대는 코인으로 대신한다 (진행 정보는 화면 읽기용으로 남겨 둠) */
+.theme-game .bar { display: none; }
+
+/* 캐릭터 + 말풍선 */
+.theme-game .g-npc { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 14px; text-align: left; }
+.theme-game .g-face { width: 56px; height: 56px; flex-shrink: 0; }
+.theme-game .g-face svg { width: 100%; height: 100%; overflow: visible; animation: g-bob 1.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.theme-game .hero.warn .g-face svg { animation: g-shake .5s ease-in-out infinite; }
+.theme-game .hero.bad .g-face svg { animation: g-droop 1.6s ease-in-out infinite; }
+@keyframes g-bob { 0%,100% { transform: translateY(0) scale(1,1); } 50% { transform: translateY(-5px) scale(.97,1.03); } }
+@keyframes g-shake { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes g-droop { 0%,100% { transform: translateY(2px) scale(1.03,.95); } 50% { transform: translateY(3px) scale(1.04,.93); } }
+.theme-game .g-eye { animation: g-blink 4s infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes g-blink { 0%,94%,100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+.theme-game .g-mouth, .theme-game .g-tear { display: none; }
+.theme-game .hero.ok .m-ok, .theme-game .hero.warn .m-warn, .theme-game .hero.bad .m-bad { display: block; }
+.theme-game .hero.bad .g-tear { display: block; animation: g-tear 1s ease-in infinite; }
+@keyframes g-tear { from { transform: translateY(0); opacity: 1; } to { transform: translateY(10px); opacity: 0; } }
+
+.theme-game .g-bubble {
+  position: relative;
+  flex: 1;
+  background: #fff;
+  border: 3px solid #3a2a12;
+  border-radius: 14px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 52px;
+}
+.theme-game .g-bubble:before { content: ""; position: absolute; left: -11px; bottom: 14px; border: 7px solid transparent; border-right: 9px solid #3a2a12; }
+.theme-game .g-bubble b { color: #e0402f; }
+
+/* 코인 10칸 */
+.theme-game .g-coins { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 14px 4px 8px; }
+.theme-game .g-coins i {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff2a0, #ffc300 60%, #d99a00);
+  border: 2px solid #3a2a12;
+  animation: g-spin 2.4s ease-in-out infinite;
+}
+.theme-game .g-coins i:nth-child(2n) { animation-delay: .3s; }
+.theme-game .g-coins i:nth-child(3n) { animation-delay: .6s; }
+@keyframes g-spin { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(.55); } }
+.theme-game .g-coins i.gone { background: #d9d2c0; border-style: dashed; border-color: #a99f86; animation: none; }
+.theme-game .g-coins i.gone.pop { animation: g-pop .5s ease-out; }
+@keyframes g-pop { 0% { transform: scale(1); background: #ffc300; } 40% { transform: translateY(-14px) scale(1.3); } 100% { transform: translateY(0) scale(1); } }
+
+/* 월말까지 코스 */
+.theme-game .g-course { display: block; position: relative; margin-top: 18px; padding-top: 18px; text-align: left; }
+.theme-game .g-course-text { position: absolute; left: 0; top: 0; margin: 0; font-size: 12px; font-weight: 800; }
+.theme-game .g-road { position: relative; height: 18px; background: #8bd24b; border: 3px solid #3a2a12; border-radius: 999px; margin-top: 14px; }
+.theme-game .g-done { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: repeating-linear-gradient(90deg, #6bb832 0 10px, #7cc93f 10px 20px); border-radius: 999px; transition: width 1s ease-in-out; }
+.theme-game .g-walker { position: absolute; top: -26px; left: 0; width: 26px; height: 26px; transform: translateX(-50%); transition: left 1s ease-in-out; }
+.theme-game .g-walker svg { width: 100%; height: 100%; }
+.theme-game .g-walker.walk svg { animation: g-hop .25s ease-in-out infinite; }
+@keyframes g-hop { 50% { transform: translateY(-6px); } }
+.theme-game .g-flag { position: absolute; right: 2px; top: -22px; font-size: 18px; transform-origin: 20% 100%; animation: g-wave 1.4s ease-in-out infinite; }
+@keyframes g-wave { 50% { transform: skewX(-8deg); } }
+
+/* 요약·목록·통계 */
+.theme-game .summary { border-radius: 14px; }
+.theme-game .list .tag { color: #3a2a12; background: #ffd9a8; border: 2px solid #3a2a12; font-weight: 700; }
+.theme-game .list li { border-bottom: 2px dotted #d9c98f; }
+.theme-game .list .actions button { color: #3a2a12; font-weight: 700; }
+.theme-game .list .actions button.danger { color: var(--bad); }
+.theme-game .cat-track { background: #efe6c4; border: 2px solid #3a2a12; height: 12px; }
+.theme-game .cat-fill { background: repeating-linear-gradient(90deg, #6fcf6f 0 10px, #5cbb5c 10px 20px); }
+.theme-game .day-bar { background: #ffd23f; border: 2px solid #3a2a12; border-bottom: 0; }
+.theme-game .day-bar.zero { background: #efe6c4; border-color: #d9c98f; }
+.theme-game .day-bar.today { background: #ff5a4f; }
+
+/* 하단 탭: 벽돌 느낌 */
+.theme-game .tabbar {
+  background: #c9753a;
+  border-top: 4px solid #3a2a12;
+  background-image: linear-gradient(#3a2a12 2px, transparent 2px), linear-gradient(90deg, #3a2a12 2px, transparent 2px);
+  background-size: 40px 30px;
+}
+.theme-game .tab { color: #fff; font-weight: 800; border-top: 0; text-shadow: 0 1px 0 #3a2a12; }
+.theme-game .tab.on { background: #ffd23f; color: #3a2a12; text-shadow: none; border: 3px solid #3a2a12; border-radius: 8px; margin: 6px; padding: 10px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-game * { animation: none !important; transition: none !important; }
+}

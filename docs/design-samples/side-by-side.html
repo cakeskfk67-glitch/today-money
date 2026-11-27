@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>디자인 나란히 비교 (실제 앱)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; font-family: "Malgun Gothic", system-ui, sans-serif; background: #cfd6e2; }
+  body { display: flex; flex-direction: column; }
+  .tools { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 6px 8px; background: #fff; border-bottom: 1px solid #aab; font-size: 12px; }
+  .tools button { border: 2px solid #333; background: #fff; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .panes { flex: 1; display: flex; gap: 8px; padding: 8px; min-height: 0; }
+  .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #aab; }
+  .bar { padding: 6px 10px; background: #f3f5f9; border-bottom: 1px solid #ccd; font-size: 13px; font-weight: 700; }
+  iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+</style>
+</head>
+<body>
+<div class="tools">
+  <span>같은 앱을 두 디자인으로 봅니다. 한쪽에서 입력하면 다른 쪽도 같은 데이터가 됩니다(새로고침 필요).</span>
+  <button id="seed">가짜 데이터 넣기</button>
+  <button id="clear">데이터 지우기</button>
+  <button id="reload">두 화면 새로고침</button>
+</div>
+<div class="panes">
+  <div class="pane">
+    <div class="bar">토스식 (기본)</div>
+    <iframe id="L" src="../../index.html" title="토스식"></iframe>
+  </div>
+  <div class="pane">
+    <div class="bar">게임식 (?theme=game)</div>
+    <iframe id="R" src="../../index.html?theme=game" title="게임식"></iframe>
+  </div>
+</div>
+<script>
+  var KEY = "today-money-v1";
+  function reloadBoth() {
+    document.getElementById("L").contentWindow.location.reload();
+    document.getElementById("R").contentWindow.location.reload();
+  }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  // 화면 확인용 가짜 데이터 (실제 개인정보 아님)
+  document.getElementById("seed").onclick = function () {
+    var d = new Date();
+    var ym = d.getFullYear() + "-" + pad(d.getMonth() + 1);
+    var today = ym + "-" + pad(d.getDate());
+    var yest = ym + "-" + pad(Math.max(1, d.getDate() - 1));
+    localStorage.setItem(KEY, JSON.stringify({
+      budget: 300000,
+      month: ym,
+      expenses: [
+        { id: 1, amount: 8000, date: yest, category: "식비", memo: "저녁" },
+        { id: 2, amount: 3000, date: yest, category: "교통", memo: "버스" },
+        { id: 3, amount: 6000, date: today, category: "식비", memo: "점심" },
+        { id: 4, amount: 4000, date: today, category: "카페·간식", memo: "아메리카노" }
+      ]
+    }));
+    reloadBoth();
+  };
+  document.getElementById("clear").onclick = function () { localStorage.removeItem(KEY); reloadBoth(); };
+  document.getElementById("reload").onclick = reloadBoth;
+</script>
+</body>
+</html>

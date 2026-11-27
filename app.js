@@ -157,8 +157,52 @@ if (typeof document !== "undefined") {
     $("bar-label").textContent = p.label;
     $("bar").setAttribute("aria-valuenow", String(p.percent));
 
+    renderGame(r, p, today);
     renderList(thisMonth);
     renderStats(today);
+  }
+
+  // 게임식 디자인용 표시 (코인 칸, 말풍선, 코스 진행). 기본 디자인에서는 숨겨져 있어 영향이 없다.
+  let lastUsedCoins = null;
+  let firstGameRender = true;
+  function renderGame(r, p, today) {
+    // 코인 10칸: 오늘 한도를 10등분해서 쓴 만큼 비운다
+    const used = r.todayLimit === 0 ? 10 : Math.min(10, Math.floor((r.spentToday / r.todayLimit) * 10));
+    const coins = $("g-coins");
+    coins.innerHTML = "";
+    for (let i = 0; i < 10; i++) {
+      const c = document.createElement("i");
+      if (i < used) c.className = "gone" + (lastUsedCoins !== null && i >= lastUsedCoins ? " pop" : "");
+      coins.appendChild(c);
+    }
+    lastUsedCoins = used;
+
+    // 말풍선
+    const left = won(Math.max(r.todayLeft, 0));
+    let msg;
+    if (p.level === "ok") msg = `오늘은 <b>${left}</b>까지 쓸 수 있어요! 아직 코인이 넉넉해요.`;
+    else if (r.todayLeft < 0) msg = `${p.message} <b>${won(r.todayLeft)}</b> 초과예요.`;
+    else msg = `${p.message} <b>${left}</b> 남았어요.`;
+    $("g-bubble").innerHTML = msg;
+
+    // 월말까지 코스: 오늘이 이번 달 며칠째인지
+    const [y, m, d] = today.split("-").map(Number);
+    const total = daysInMonth(y, m);
+    $("g-course-text").textContent = `월말까지 ${d}일 / ${total}일`;
+    const pct = (d / total) * 100 + "%";
+    const walker = $("g-walker");
+    const apply = () => { $("g-done").style.width = pct; walker.style.left = pct; };
+    if (firstGameRender) {
+      // 처음 열 때만 시작점에서 오늘 위치까지 걸어간다
+      firstGameRender = false;
+      $("g-done").style.width = "0%";
+      walker.style.left = "0%";
+      walker.classList.add("walk");
+      setTimeout(() => { apply(); }, 80);
+      setTimeout(() => walker.classList.remove("walk"), 1100);
+    } else {
+      apply();
+    }
   }
 
   function renderStats(today) {
