@@ -1,6 +1,6 @@
 // 실행: node test.js
 const assert = require("assert");
-const { calculate, progressInfo, monthStats } = require("./app.js");
+const { calculate, progressInfo, monthStats, adjustPayDate, buildFixedItems } = require("./app.js");
 
 const eq = (actual, expected, name) => {
   assert.deepStrictEqual(actual, expected, name);
@@ -80,5 +80,64 @@ eq(st.maxDay, { day: 3, amount: 10000 }, "통계: 가장 많이 쓴 날");
 eq(st.average, 1250, "통계: 하루 평균(25000 ÷ 오늘 20일)");
 const empty = monthStats([], "2026-11-20");
 eq([empty.total, empty.byCategory.length, empty.maxDay.amount, empty.average], [0, 0, 0, 0], "통계: 지출 없음");
+
+// ===== 고정지출 결제일: 주말이면 돌아오는 월요일로 =====
+eq(adjustPayDate(2026, 12, 15), "2026-12-15", "결제일: 평일(화)이면 그대로");
+eq(adjustPayDate(2026, 11, 15), "2026-11-16", "결제일: 일요일 → 월요일");
+eq(adjustPayDate(2026, 11, 14), "2026-11-16", "결제일: 토요일 → 월요일");
+eq(adjustPayDate(2026, 11, 1), "2026-11-02", "결제일: 1일이 일요일 → 2일 월요일");
+eq(adjustPayDate(2026, 5, 30), "2026-05-29", "결제일: 월말 토요일 → 월요일이 다음 달이라 앞 금요일로");
+eq(adjustPayDate(2026, 5, 31), "2026-05-29", "결제일: 월말 일요일 → 앞 금요일로");
+eq(adjustPayDate(2027, 2, 31), "2027-02-26", "결제일: 31일 지정, 2월은 28일(일요일) → 앞 금요일");
+eq(adjustPayDate(2026, 11, 31), "2026-11-30", "결제일: 31일 지정, 11월은 30일(월요일)");
+
+// ===== 이번 달 고정지출 목록 =====
+const fixedList = [
+  { id: 1, name: "통신비", amount: 55000, day: 15 },
+  { id: 2, name: "교통비", amount: 60000, day: 15 },
+];
+eq(buildFixedItems(fixedList, "2026-11", { "2026-11": { 1: 52800 } }, "2026-11-01"),
+  [
+    { id: 1, name: "통신비", date: "2026-11-16", amount: 52800, confirmed: true },
+    { id: 2, name: "교통비", date: "2026-11-16", amount: 60000, confirmed: false },
+  ],
+  "고정지출: 확인한 금액은 실제 금액, 아니면 예정액");
+eq(buildFixedItems(fixedList, "2026-11", {}, "2026-11-17"), [],
+  "고정지출: 예산 입력일 전에 이미 나간 것은 제외");
+eq(buildFixedItems(fixedList, "2026-12", { "2026-11": { 1: 1 } }, "2026-12-01").map((x) => x.amount),
+  [55000, 60000], "고정지출: 다른 달에 확인한 금액은 이번 달에 영향 없음");
+eq(buildFixedItems([], "2026-11", {}, "2026-11-01"), [], "고정지출: 등록한 것이 없으면 빈 목록");
+
+// ===== 오늘 한도에 고정지출·예정 지출 반영 =====
+const noPlan = calculate(300000, [], "2026-11-01");
+eq(calculate(300000, [], "2026-11-01", { fixed: [], planned: [] }), noPlan, "계획이 비어 있으면 기존 계산과 같음");
+
+eq(calculate(300000, [], "2026-11-01", { fixed: [{ date: "2026-11-16", amount: 50000 }] }),
+  { daysLeft: 30, todayLimit: 8333, spentToday: 0, todayLeft: 8333, monthLeft: 250000 },
+  "고정지출 50,000원을 미리 빼고 계산 (250000÷30)");
+
+eq(calculate(300000, [{ amount: 120000, date: "2026-11-10" }], "2026-11-20",
+  { planned: [{ date: "2026-11-28", amount: 30000 }] }).todayLimit, 13636,
+  "예정 지출(28일 30,000원)을 미리 빼 두면 오늘 한도가 줄어듦 (150000÷11)");
+
+eq(calculate(300000, [{ amount: 200000, date: "2026-11-10" }], "2026-11-28",
+  { planned: [{ date: "2026-11-28", amount: 30000 }] }).todayLimit, 53333,
+  "예정한 날이 되면 그날 몫(30,000원)이 한도에 더해짐 (70000÷3 + 30000)");
+
+eq(calculate(300000, [{ amount: 120000, date: "2026-11-10" }], "2026-11-20",
+  { planned: [{ date: "2026-11-10", amount: 30000 }] }).todayLimit, 16363,
+  "이미 지난 예정일은 무시");
+
+eq(calculate(300000, [], "2026-11-01", { fixed: [{ date: "2026-10-16", amount: 50000 }, { date: "2026-12-16", amount: 50000 }] }).todayLimit, 10000,
+  "다른 달 고정지출은 무시");
+
+eq(calculate(100000, [], "2026-11-01", { fixed: [{ date: "2026-11-16", amount: 120000 }] }),
+  { daysLeft: 30, todayLimit: 0, spentToday: 0, todayLeft: 0, monthLeft: -20000 },
+  "고정지출이 예산보다 크면 한도 0원");
+
+// 고정지출이 결제일을 지나도 한도가 갑자기 늘지 않는다 (이미 빼 둔 금액이므로)
+const plan16 = { fixed: [{ date: "2026-11-16", amount: 50000 }] };
+eq(calculate(300000, [], "2026-11-16", plan16).monthLeft, 250000, "결제일 당일에도 이번 달 남은 예산은 그대로");
+eq(calculate(300000, [], "2026-11-17", plan16).monthLeft, 250000, "결제일 이후에도 이번 달 남은 예산은 그대로");
 
 console.log("\n모든 테스트 통과");

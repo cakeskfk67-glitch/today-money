@@ -13,9 +13,46 @@ function daysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
 
+// ----- 고정지출(매달 같은 날 나가는 돈)과 지출이 많은 날 -----
+
+// 결제일 계산: 매달 `day`일. 그 달에 없는 날(예: 2월 31일)이면 그 달의 마지막 날.
+// 토·일이면 돌아오는 월요일로 미룬다. 월요일이 다음 달로 넘어가면 대신 바로 앞 금요일로 당긴다.
+function adjustPayDate(year, month, day) {
+  const last = daysInMonth(year, month);
+  const target = new Date(year, month - 1, Math.min(day, last));
+  const dow = target.getDay(); // 0=일, 6=토
+  if (dow === 6 || dow === 0) {
+    const forward = new Date(target);
+    forward.setDate(forward.getDate() + (dow === 6 ? 2 : 1));
+    if (forward.getMonth() === target.getMonth()) return toDateString(forward);
+    const back = new Date(target);
+    back.setDate(back.getDate() - (dow === 6 ? 1 : 2));
+    return toDateString(back);
+  }
+  return toDateString(target);
+}
+
+// 이번 달에 해당하는 고정지출 목록을 날짜순으로 만든다.
+// fixedList: [{id, name, amount, day}], ym: "YYYY-MM", actual: {"YYYY-MM": {id: 실제금액}},
+// startDate: 예산을 입력한 날 (이 날짜 전에 이미 나간 고정지출은 입력한 예산에 반영돼 있으므로 제외)
+function buildFixedItems(fixedList, ym, actual, startDate) {
+  const [y, m] = ym.split("-").map(Number);
+  const confirmed = (actual && actual[ym]) || {};
+  const items = [];
+  for (const f of fixedList || []) {
+    const date = adjustPayDate(y, m, f.day);
+    if (startDate && date < startDate) continue;
+    const isConfirmed = Object.prototype.hasOwnProperty.call(confirmed, f.id);
+    items.push({ id: f.id, name: f.name, date, amount: isConfirmed ? confirmed[f.id] : f.amount, confirmed: isConfirmed });
+  }
+  return items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
 // today: "YYYY-MM-DD", expenses: [{amount, date}], budget: 숫자
-// 규칙: 오늘 한도 = (월 예산 - 오늘 이전 이번 달 지출) ÷ 오늘 포함 남은 일수
-function calculate(budget, expenses, today) {
+// plan(선택): { fixed: [{date, amount}], planned: [{date, amount}] }
+// 규칙: 오늘 한도 = (월 예산 - 오늘 이전 이번 달 지출 - 이번 달 고정지출 - 오늘 이후 예정된 지출) ÷ 오늘 포함 남은 일수
+//       + 오늘 예정된 지출(지출이 많은 날로 미리 적어 둔 금액)
+function calculate(budget, expenses, today, plan) {
   const [y, m, d] = today.split("-").map(Number);
   const monthPrefix = today.slice(0, 7);
   const daysLeft = daysInMonth(y, m) - d + 1;
@@ -28,10 +65,23 @@ function calculate(budget, expenses, today) {
     else if (e.date === today) spentToday += e.amount;
   }
 
-  const availableBeforeToday = budget - spentBefore;
-  const todayLimit = availableBeforeToday > 0 ? Math.floor(availableBeforeToday / daysLeft) : 0;
+  let fixedTotal = 0;
+  let plannedRemaining = 0; // 오늘을 포함해 앞으로 예정된 금액
+  let plannedToday = 0;
+  if (plan) {
+    for (const f of plan.fixed || []) if (f.date.startsWith(monthPrefix)) fixedTotal += f.amount;
+    for (const p of plan.planned || []) {
+      if (!p.date.startsWith(monthPrefix) || p.date < today) continue;
+      plannedRemaining += p.amount;
+      if (p.date === today) plannedToday += p.amount;
+    }
+  }
+
+  const availableBeforeToday = budget - spentBefore - fixedTotal - plannedRemaining;
+  const baseLimit = availableBeforeToday > 0 ? Math.floor(availableBeforeToday / daysLeft) : 0;
+  const todayLimit = baseLimit + plannedToday;
   const todayLeft = todayLimit - spentToday; // 음수면 초과
-  const monthLeft = budget - spentBefore - spentToday;
+  const monthLeft = budget - spentBefore - spentToday - fixedTotal;
 
   return { daysLeft, todayLimit, spentToday, todayLeft, monthLeft };
 }
@@ -87,7 +137,7 @@ function monthStats(expenses, today) {
 
 // 테스트(node)에서 불러 쓸 수 있게 내보내기
 if (typeof module !== "undefined") {
-  module.exports = { calculate, progressInfo, monthStats, toDateString, daysInMonth };
+  module.exports = { calculate, progressInfo, monthStats, toDateString, daysInMonth, adjustPayDate, buildFixedItems };
 }
 
 // ===== 화면과 저장 (브라우저에서만 실행) =====
