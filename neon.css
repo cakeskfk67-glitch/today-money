@@ -1,0 +1,144 @@
+/* 네온 사이버 디자인 (?theme=neon). game.css 위에 덮어쓴다. 어두운 배경 + 형광 포인트 + 유리 패널 */
+
+:root.theme-neon {
+  --bg: #0b0f1e;
+  --card: rgba(22, 28, 56, 0.72);
+  --text: #e8ecff;
+  --muted: #8d97c9;
+  --primary: #22e1ff;
+  --ok: #3dffb0;
+  --warn: #ffb020;
+  --bad: #ff3b6b;
+  --line: rgba(140, 170, 255, 0.2);
+}
+
+.theme-neon body {
+  background-color: #0b0f1e;
+  background-image:
+    radial-gradient(900px 500px at 90% -10%, rgba(255, 62, 165, 0.30), transparent 60%),
+    radial-gradient(800px 520px at -10% 25%, rgba(34, 225, 255, 0.22), transparent 60%);
+  background-attachment: fixed;
+  color: var(--text);
+}
+/* 은은한 격자 */
+.theme-neon body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(140, 170, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 170, 255, 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.theme-neon .app { position: relative; z-index: 1; }
+
+.theme-neon .card {
+  background: rgba(22, 28, 56, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(120, 190, 255, 0.28);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 24px rgba(34, 225, 255, 0.08);
+}
+
+.theme-neon h1, .theme-neon h2 { color: #fff; }
+.theme-neon .top { color: var(--muted); font-weight: 600; }
+.theme-neon button.link { color: #22e1ff; text-decoration: none; font-weight: 700; }
+.theme-neon label, .theme-neon .hint, .theme-neon .unit { color: var(--muted); }
+
+.theme-neon input, .theme-neon select {
+  background: rgba(8, 12, 30, 0.85);
+  color: var(--text);
+  border: 1px solid rgba(120, 190, 255, 0.3);
+  border-radius: 12px;
+}
+.theme-neon input:focus, .theme-neon select:focus {
+  outline: none;
+  border-color: #22e1ff;
+  box-shadow: 0 0 0 3px rgba(34, 225, 255, 0.2), 0 0 14px rgba(34, 225, 255, 0.35);
+}
+.theme-neon select option { background: #10162e; color: #e8ecff; }
+
+.theme-neon button.primary {
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(90deg, #22e1ff, #7c5cff 55%, #ff3ea5);
+  box-shadow: 0 0 22px rgba(124, 92, 255, 0.55);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.theme-neon button.primary:active { transform: scale(0.98); box-shadow: 0 0 12px rgba(124, 92, 255, 0.6); }
+.theme-neon button.secondary { background: transparent; color: #cfe3ff; border: 1px solid rgba(140, 170, 255, 0.4); }
+
+/* 큰 숫자: 빛나게 */
+.theme-neon .hero-amount {
+  text-shadow: 0 0 14px currentColor, 0 0 36px currentColor;
+  animation: n-glow 3s ease-in-out infinite;
+}
+@keyframes n-glow { 50% { text-shadow: 0 0 8px currentColor, 0 0 22px currentColor; } }
+.theme-neon .hero.bad .hero-amount { animation: g-pulse .8s ease-in-out infinite; }
+
+/* 말풍선 */
+.theme-neon .g-bubble {
+  background: rgba(10, 15, 40, 0.88);
+  border: 1px solid rgba(34, 225, 255, 0.55);
+  color: var(--text);
+  box-shadow: 0 0 14px rgba(34, 225, 255, 0.25);
+}
+.theme-neon .g-bubble:before { border-right-color: rgba(34, 225, 255, 0.6); }
+.theme-neon .g-bubble b { color: #22e1ff; }
+
+/* 캐릭터: 어두운 몸 + 형광 테두리 */
+.theme-neon .g-face svg { filter: drop-shadow(0 0 8px rgba(34, 225, 255, 0.75)); }
+.theme-neon .g-face svg circle[r="25"] { fill: #1a2150; stroke: #22e1ff; }
+.theme-neon .g-face svg ellipse[rx="8"] { fill: #22e1ff; opacity: 0.6; }
+.theme-neon .g-eye { fill: #22e1ff; }
+.theme-neon .g-mouth path:not(.g-tear) { stroke: #22e1ff; }
+.theme-neon .g-walker svg circle[r="24"] { fill: #1a2150; stroke: #22e1ff; }
+.theme-neon .g-walker svg circle[r="4"] { fill: #22e1ff; }
+
+/* 코인: 빛나는 형광 구슬 */
+.theme-neon .g-coins i {
+  background: radial-gradient(circle at 35% 30%, #c9f9ff, #22e1ff 55%, #0a7fa8);
+  border: 1px solid #bff7ff;
+  box-shadow: 0 0 10px rgba(34, 225, 255, 0.85);
+}
+.theme-neon .g-coins i.gone { background: transparent; border: 1px dashed rgba(140, 170, 255, 0.35); box-shadow: none; }
+
+/* 월말 코스 */
+.theme-neon .g-course-text { color: var(--muted); }
+.theme-neon .g-road { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(140, 170, 255, 0.35); height: 14px; }
+.theme-neon .g-done { background: linear-gradient(90deg, #22e1ff, #ff3ea5); box-shadow: 0 0 12px rgba(34, 225, 255, 0.7); }
+
+/* 목록·통계 */
+.theme-neon .list li { border-bottom: 1px solid var(--line); }
+.theme-neon .list .tag { color: #22e1ff; background: rgba(34, 225, 255, 0.12); border: 1px solid rgba(34, 225, 255, 0.4); }
+.theme-neon .list .actions button { color: #22e1ff; }
+.theme-neon .list .actions button.danger { color: var(--bad); }
+.theme-neon li.editing { background: rgba(255, 176, 32, 0.12); }
+.theme-neon .cat-track { background: rgba(255, 255, 255, 0.08); border: 0; height: 8px; }
+.theme-neon .cat-fill { background: linear-gradient(90deg, #22e1ff, #ff3ea5); }
+.theme-neon .day-bar { background: rgba(34, 225, 255, 0.5); border: 0; border-radius: 3px 3px 0 0; }
+.theme-neon .day-bar.zero { background: rgba(255, 255, 255, 0.08); }
+.theme-neon .day-bar.today { background: #ff3ea5; box-shadow: 0 0 10px #ff3ea5; }
+
+/* 하단 탭: 유리 */
+.theme-neon .tabbar {
+  background: rgba(10, 14, 32, 0.88);
+  background-image: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(120, 190, 255, 0.3);
+}
+.theme-neon .tab { color: var(--muted); text-shadow: none; font-weight: 700; }
+.theme-neon .tab.on {
+  background: transparent;
+  color: #22e1ff;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 16px 0;
+  text-shadow: 0 0 12px #22e1ff;
+  box-shadow: inset 0 3px 0 #22e1ff;
+}

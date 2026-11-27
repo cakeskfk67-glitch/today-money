@@ -1,0 +1,141 @@
+/* 판타지 가챠 디자인 (?theme=fantasy). game.css 위에 덮어쓴다. 남색 + 금색 + 반짝이는 별 + 보석 코인 */
+
+:root.theme-fantasy {
+  --bg: #12163d;
+  --card: #1b2152;
+  --text: #f6efe0;
+  --muted: #b3b6dd;
+  --primary: #f3c969;
+  --ok: #8dffcb;
+  --warn: #ffb44d;
+  --bad: #ff6b81;
+  --line: rgba(243, 201, 105, 0.22);
+}
+
+.theme-fantasy body {
+  background-color: #12163d;
+  background-image: radial-gradient(900px 600px at 50% -10%, #3b3f93 0%, transparent 65%), linear-gradient(#1a1f4f, #0d1030);
+  background-attachment: fixed;
+  color: var(--text);
+}
+/* 반짝이는 별 */
+.theme-fantasy body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 12% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 78% 12%, #ffe9a8, transparent),
+    radial-gradient(2px 2px at 40% 40%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 88% 55%, #fff, transparent),
+    radial-gradient(2px 2px at 22% 72%, #ffe9a8, transparent),
+    radial-gradient(1.5px 1.5px at 60% 88%, #fff, transparent),
+    radial-gradient(2px 2px at 92% 85%, #ffe9a8, transparent);
+  animation: f-twinkle 4s ease-in-out infinite;
+}
+@keyframes f-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.theme-fantasy .app { position: relative; z-index: 1; }
+
+/* 패널: 금색 이중 테두리 */
+.theme-fantasy .card {
+  background: linear-gradient(#232a66, #181d4c);
+  border: 2px solid #d9b45a;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 3px #181d4c, inset 0 0 0 4px rgba(217, 180, 90, 0.55), 0 10px 26px rgba(0, 0, 0, 0.5);
+}
+.theme-fantasy h1, .theme-fantasy h2 { color: #f3c969; letter-spacing: 0.5px; }
+.theme-fantasy .top { color: var(--muted); }
+.theme-fantasy button.link { color: #f3c969; text-decoration: none; }
+.theme-fantasy label, .theme-fantasy .hint, .theme-fantasy .unit { color: var(--muted); }
+
+.theme-fantasy input, .theme-fantasy select {
+  background: #11153a;
+  color: var(--text);
+  border: 2px solid rgba(217, 180, 90, 0.5);
+  border-radius: 10px;
+}
+.theme-fantasy input:focus, .theme-fantasy select:focus { outline: none; border-color: #f3c969; box-shadow: 0 0 12px rgba(243, 201, 105, 0.5); }
+.theme-fantasy select option { background: #11153a; color: #f6efe0; }
+
+.theme-fantasy button.primary {
+  color: #3b2a05;
+  border: 2px solid #fff1bd;
+  border-radius: 12px;
+  background: linear-gradient(#ffe38e, #e9b73d 55%, #c98f1f);
+  box-shadow: 0 4px 0 #8a5d10, 0 8px 18px rgba(233, 183, 61, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+.theme-fantasy button.primary:after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; width: 40%; left: -60%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: f-shine 3.2s ease-in-out infinite;
+}
+@keyframes f-shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+.theme-fantasy button.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a5d10; }
+.theme-fantasy button.secondary { background: transparent; color: #f3c969; border: 2px solid rgba(217, 180, 90, 0.6); }
+
+/* 큰 숫자: 금빛 */
+.theme-fantasy .hero-amount { text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45), 0 0 18px currentColor; }
+.theme-fantasy .hero.ok .hero-amount { color: #ffe38e; }
+.theme-fantasy .hero.bad .hero-amount { animation: g-pulse .8s ease-in-out infinite; }
+
+/* 말풍선: 양피지 */
+.theme-fantasy .g-bubble {
+  background: #fbf1d4;
+  border: 2px solid #d9b45a;
+  color: #3b2a05;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.theme-fantasy .g-bubble:before { border-right-color: #d9b45a; }
+.theme-fantasy .g-bubble b { color: #b3261e; }
+
+/* 캐릭터: 따뜻한 몸 + 금빛 후광 */
+.theme-fantasy .g-face svg { filter: drop-shadow(0 0 10px rgba(243, 201, 105, 0.8)); }
+.theme-fantasy .g-face svg circle[r="25"] { fill: #ffe6b8; stroke: #c9922e; }
+.theme-fantasy .g-face svg ellipse[rx="8"] { fill: #c9922e; }
+.theme-fantasy .g-walker svg circle[r="24"] { fill: #ffe6b8; stroke: #c9922e; }
+
+/* 코인: 보석 */
+.theme-fantasy .g-coins i {
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  background: linear-gradient(135deg, #fff6c7, #ffd34d 45%, #e08a00);
+  filter: drop-shadow(0 0 4px rgba(255, 211, 77, 0.9));
+}
+.theme-fantasy .g-coins i.gone { background: rgba(255, 255, 255, 0.1); filter: none; }
+
+/* 월말 코스 */
+.theme-fantasy .g-course-text { color: #f3c969; }
+.theme-fantasy .g-road { background: #0f1336; border: 2px solid #d9b45a; height: 16px; }
+.theme-fantasy .g-done { background: linear-gradient(90deg, #7b5cff, #f3c969); }
+
+/* 목록·통계 */
+.theme-fantasy .list li { border-bottom: 1px solid var(--line); }
+.theme-fantasy .list .tag { color: #3b2a05; background: #f3c969; border: 0; }
+.theme-fantasy .list .actions button { color: #f3c969; }
+.theme-fantasy .list .actions button.danger { color: var(--bad); }
+.theme-fantasy li.editing { background: rgba(243, 201, 105, 0.12); }
+.theme-fantasy .cat-track { background: #0f1336; border: 1px solid rgba(217, 180, 90, 0.4); height: 10px; }
+.theme-fantasy .cat-fill { background: linear-gradient(90deg, #7b5cff, #f3c969); }
+.theme-fantasy .day-bar { background: #b9a3ff; border: 0; border-radius: 3px 3px 0 0; }
+.theme-fantasy .day-bar.zero { background: rgba(255, 255, 255, 0.1); }
+.theme-fantasy .day-bar.today { background: #f3c969; box-shadow: 0 0 10px #f3c969; }
+
+/* 하단 탭 */
+.theme-fantasy .tabbar { background-color: #10143a; background-image: linear-gradient(#1d2358, #10143a); border-top: 2px solid #d9b45a; }
+.theme-fantasy .tab { color: var(--muted); text-shadow: none; font-weight: 700; }
+.theme-fantasy .tab.on {
+  background: radial-gradient(circle at 50% 120%, rgba(243, 201, 105, 0.35), transparent 70%);
+  color: #f3c969;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 16px 0;
+  box-shadow: inset 0 3px 0 #f3c969;
+}

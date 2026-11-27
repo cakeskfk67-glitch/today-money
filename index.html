@@ -6,15 +6,24 @@
   <title>오늘 쓸 수 있는 돈</title>
   <link rel="stylesheet" href="style.css">
   <script>
-    // 기본은 게임식 디자인. 주소 끝에 ?theme=toss 를 붙이면 예전 토스식 디자인
+    // 기본은 게임식 디자인(game). 주소 끝에 ?theme=toss | neon | fantasy | soft 를 붙이면 다른 디자인
+    // neon / fantasy / soft 는 game.css(구조) 위에 자기 스타일 파일을 한 겹 더 입힌다.
     (function () {
       var t = new URLSearchParams(location.search).get("theme");
-      if (t !== "toss") {
-        document.documentElement.classList.add("theme-game");
+      if (t === "toss") return;
+      var extra = { neon: 1, fantasy: 1, soft: 1 };
+      var root = document.documentElement;
+      function addCss(name) {
         var link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "game.css";
+        link.href = name + ".css";
         document.head.appendChild(link);
+      }
+      root.classList.add("theme-game");
+      addCss("game");
+      if (extra[t]) {
+        root.classList.add("theme-" + t);
+        addCss(t);
       }
     })();
   </script>

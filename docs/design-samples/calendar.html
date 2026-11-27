@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-game">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>달력 화면 샘플 (게임식)</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../../game.css">
+<style>
+  .sample-note { background: #fff; border: 2px dashed #3a2a12; border-radius: 10px; padding: 8px 10px; font-size: 12px; margin: 0 0 12px; color: #3a2a12; }
+  .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .cal-head h2 { margin: 0; }
+  .cal-head button { border: 3px solid #3a2a12; background: #fff; border-radius: 10px; font-weight: 900; padding: 2px 10px; font-size: 16px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal .dow { text-align: center; font-size: 11px; font-weight: 800; color: #7a6540; padding-bottom: 2px; }
+  .cal .dow:first-child { color: #c4161c; }
+  .cal .dow:nth-child(7) { color: #2563eb; }
+  .cell { position: relative; aspect-ratio: 1 / 1.1; background: #fff; border: 2px solid #d9c98f; border-radius: 8px; padding: 2px 3px; font-size: 12px; font-weight: 700; text-align: left; font-family: inherit; color: #3a2a12; cursor: pointer; }
+  .cell.empty { visibility: hidden; }
+  .cell.past { background: #f1ead2; color: #a99f86; }
+  .cell.today { border: 3px solid #3a2a12; background: #ffd23f; }
+  .cell.sel { outline: 3px solid #e0402f; outline-offset: 1px; }
+  .cell .mk { position: absolute; left: 2px; right: 2px; bottom: 2px; display: flex; gap: 1px; justify-content: center; font-size: 12px; line-height: 1; }
+  .cell .dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #3a2a12; display: inline-block; }
+  .dot.fix { background: #4aa3ff; }
+  .dot.big { background: #ff5a4f; }
+  .legend { display: flex; gap: 12px; font-size: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .detail { margin-top: 12px; padding: 10px; background: #fff; border: 3px solid #3a2a12; border-radius: 12px; font-size: 14px; }
+  .detail b { color: #e0402f; }
+  .sched { list-style: none; margin: 0; padding: 0; }
+  .sched li { display: flex; align-items: center; gap: 8px; padding: 10px 2px; border-bottom: 2px dotted #d9c98f; font-size: 14px; }
+  .sched li:last-child { border-bottom: 0; }
+  .sched .when { min-width: 54px; font-weight: 800; }
+  .sched .what { flex: 1; }
+  .sched small { display: block; color: #7a6540; font-size: 11px; font-weight: 400; }
+  .sched .amt { font-weight: 800; }
+  .sched .paid { color: #3f9b4b; font-size: 12px; font-weight: 800; }
+  .addrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .addrow button { border: 3px solid #3a2a12; background: #fff; border-radius: 12px; padding: 10px 4px; font-weight: 800; font-size: 13px; font-family: inherit; cursor: pointer; }
+  .effect { background: #fff6cf; border: 3px solid #3a2a12; border-radius: 12px; padding: 10px; font-size: 13px; line-height: 1.5; margin-top: 12px; }
+  .effect b { color: #e0402f; }
+  .app { padding-top: 12px; }
+</style>
+</head>
+<body>
+<main class="app">
+  <p class="sample-note">샘플입니다 (숫자는 예시). 날짜 칸을 눌러 보세요. 앱에 연결하기 전 화면 모양만 확인하는 용도입니다.</p>
+
+  <header class="top">
+    <span>2026.11.27</span>
+    <span class="link" style="color:#3a2a12;font-weight:800">예산 다시 설정</span>
+  </header>
+
+  <div class="card">
+    <div class="cal-head">
+      <button type="button" aria-label="이전 달">‹</button>
+      <h2>2026년 11월</h2>
+      <button type="button" aria-label="다음 달">›</button>
+    </div>
+    <div class="cal" id="cal"></div>
+    <div class="legend">
+      <span><i class="dot fix" style="width:12px;height:12px;border-radius:50%;display:inline-block"></i> 고정지출</span>
+      <span><i class="dot big" style="width:12px;height:12px;border-radius:50%;display:inline-block"></i> 지출 많은 날</span>
+      <span><b style="background:#ffd23f;border:2px solid #3a2a12;border-radius:4px;padding:0 5px;font-size:11px">27</b> 오늘</span>
+    </div>
+    <div class="detail" id="detail"></div>
+  </div>
+
+  <div class="card">
+    <h2>이번 달 일정</h2>
+    <ul class="sched">
+      <li>
+        <span class="when">16일</span>
+        <span class="what">통신비<small>매달 15일(일) → 다음 평일 16일(월)로 이동 · 예정 55,000원</small></span>
+        <span class="amt">52,800원</span><span class="paid">✓ 확인</span>
+      </li>
+      <li>
+        <span class="when">16일</span>
+        <span class="what">교통비<small>매달 15일(일) → 16일(월)로 이동 · 예정 60,000원</small></span>
+        <span class="amt">58,000원</span><span class="paid">✓ 확인</span>
+      </li>
+      <li>
+        <span class="when">28일</span>
+        <span class="what">친구 약속<small>지출 많은 날 · 예상 금액</small></span>
+        <span class="amt">30,000원</span>
+      </li>
+    </ul>
+    <div class="addrow">
+      <button type="button">＋ 고정지출 추가</button>
+      <button type="button">＋ 지출 많은 날 추가</button>
+    </div>
+    <div class="effect">
+      예정된 <b>28일 친구 약속 30,000원</b>은 예산에서 미리 빼 두었어요.<br>
+      그래서 오늘 한도가 <b>72,250원 → 70,250원</b>으로 조금 줄었지만, 약속 날에 한도가 모자라지 않아요. <small style="color:#7a6540">(예시 숫자)</small>
+    </div>
+  </div>
+
+  <nav class="tabbar" aria-label="화면 이동">
+    <button type="button" class="tab">오늘</button>
+    <button type="button" class="tab on">달력</button>
+    <button type="button" class="tab">내역</button>
+    <button type="button" class="tab">통계</button>
+  </nav>
+</main>
+
+<script>
+  // 2026년 11월: 1일은 일요일, 30일까지. 오늘은 27일.
+  var TODAY = 27, DAYS = 30, START = 0; // START = 1일의 요일(0=일)
+  var events = {
+    16: [{ kind: "fix", text: "통신비 · 교통비 (15일 일요일 → 16일 월요일로 이동)" }],
+    28: [{ kind: "big", text: "친구 약속 · 예상 30,000원" }]
+  };
+  var cal = document.getElementById("cal"), detail = document.getElementById("detail");
+  ["일","월","화","수","목","금","토"].forEach(function (n) {
+    var e = document.createElement("div"); e.className = "dow"; e.textContent = n; cal.appendChild(e);
+  });
+  for (var i = 0; i < START; i++) { var s = document.createElement("div"); s.className = "cell empty"; cal.appendChild(s); }
+  function show(day) {
+    document.querySelectorAll(".cell.sel").forEach(function (c) { c.classList.remove("sel"); });
+    var cell = document.getElementById("d" + day); if (cell) cell.classList.add("sel");
+    var ev = events[day];
+    detail.innerHTML = "<b>11월 " + day + "일</b>" + (day === TODAY ? " (오늘)" : "") + "<br>" +
+      (ev ? ev.map(function (x) { return (x.kind === "fix" ? "🔵 " : "🔴 ") + x.text; }).join("<br>") : "등록된 일정이 없어요.");
+  }
+  for (var d = 1; d <= DAYS; d++) {
+    (function (day) {
+      var b = document.createElement("button");
+      b.type = "button"; b.id = "d" + day;
+      b.className = "cell" + (day < TODAY ? " past" : "") + (day === TODAY ? " today" : "");
+      b.innerHTML = day + '<span class="mk">' + (events[day] || []).map(function (x) { return '<i class="dot ' + x.kind + '"></i>'; }).join("") + "</span>";
+      b.addEventListener("click", function () { show(day); });
+      cal.appendChild(b);
+    })(d);
+  }
+  show(28);
+</script>
+</body>
+</html>

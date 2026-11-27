@@ -12,32 +12,54 @@
   .tools button { border: 2px solid #333; background: #fff; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .panes { flex: 1; display: flex; gap: 8px; padding: 8px; min-height: 0; }
   .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #aab; }
-  .bar { padding: 6px 10px; background: #f3f5f9; border-bottom: 1px solid #ccd; font-size: 13px; font-weight: 700; }
+  .bar { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #f3f5f9; border-bottom: 1px solid #ccd; font-size: 12px; font-weight: 700; }
+  select { font-size: 12px; padding: 2px 4px; font-family: inherit; max-width: 100%; }
   iframe { flex: 1; width: 100%; border: 0; background: #fff; }
 </style>
 </head>
 <body>
 <div class="tools">
-  <span>같은 앱을 두 디자인으로 봅니다. 한쪽에서 입력하면 다른 쪽도 같은 데이터가 됩니다(새로고침 필요).</span>
+  <span>같은 앱을 여러 디자인으로 봅니다. 데이터는 모두 공유됩니다.</span>
   <button id="seed">가짜 데이터 넣기</button>
   <button id="clear">데이터 지우기</button>
-  <button id="reload">두 화면 새로고침</button>
+  <button id="reload">전체 새로고침</button>
 </div>
-<div class="panes">
-  <div class="pane">
-    <div class="bar">토스식 (?theme=toss)</div>
-    <iframe id="L" src="../../index.html?theme=toss" title="토스식"></iframe>
-  </div>
-  <div class="pane">
-    <div class="bar">게임식 (지금 기본)</div>
-    <iframe id="R" src="../../index.html" title="게임식"></iframe>
-  </div>
-</div>
+<div class="panes" id="panes"></div>
 <script>
   var KEY = "today-money-v1";
-  function reloadBoth() {
-    document.getElementById("L").contentWindow.location.reload();
-    document.getElementById("R").contentWindow.location.reload();
+  var THEMES = [
+    ["neon", "네온 사이버"], ["fantasy", "판타지 가챠"], ["soft", "포근한 3D"],
+    ["game", "게임식 (이전 기본)"], ["toss", "토스식"]
+  ];
+  var DEFAULTS = ["neon", "fantasy", "soft"];
+  var panes = document.getElementById("panes");
+
+  DEFAULTS.forEach(function (def, i) {
+    var pane = document.createElement("div");
+    pane.className = "pane";
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    var sel = document.createElement("select");
+    THEMES.forEach(function (t) {
+      var o = document.createElement("option");
+      o.value = t[0]; o.textContent = t[1];
+      if (t[0] === def) o.selected = true;
+      sel.appendChild(o);
+    });
+    var frame = document.createElement("iframe");
+    frame.id = "f" + i;
+    frame.title = "디자인 " + (i + 1);
+    function go() { frame.src = "../../index.html?theme=" + sel.value; }
+    sel.addEventListener("change", go);
+    bar.appendChild(sel);
+    pane.appendChild(bar);
+    pane.appendChild(frame);
+    panes.appendChild(pane);
+    go();
+  });
+
+  function reloadAll() {
+    document.querySelectorAll("iframe").forEach(function (f) { f.contentWindow.location.reload(); });
   }
   function pad(n) { return String(n).padStart(2, "0"); }
   // 화면 확인용 가짜 데이터 (실제 개인정보 아님)
@@ -56,10 +78,10 @@
         { id: 4, amount: 4000, date: today, category: "카페·간식", memo: "아메리카노" }
       ]
     }));
-    reloadBoth();
+    reloadAll();
   };
-  document.getElementById("clear").onclick = function () { localStorage.removeItem(KEY); reloadBoth(); };
-  document.getElementById("reload").onclick = reloadBoth;
+  document.getElementById("clear").onclick = function () { localStorage.removeItem(KEY); reloadAll(); };
+  document.getElementById("reload").onclick = reloadAll;
 </script>
 </body>
 </html>
