@@ -223,7 +223,7 @@
 .theme-adventure .a-backdrop { display: block; position: fixed; inset: 0; z-index: 20; background: rgba(10, 30, 70, 0.55); opacity: 0; pointer-events: none; transition: opacity .25s; }
 .theme-adventure.sheet-open .a-backdrop, .theme-adventure body.sheet-open .a-backdrop { opacity: 1; pointer-events: auto; }
 
-.theme-adventure #expense-form {
+.theme-adventure #expense-form, .theme-adventure .sheet {
   position: fixed;
   left: 0;
   right: 0;
@@ -239,7 +239,7 @@
   transform: translateY(112%);
   transition: transform .32s cubic-bezier(.2, .9, .3, 1);
 }
-body.sheet-open #expense-form { transform: none; }
+body[data-sheet="expense"] #expense-form, body[data-sheet="fixed"] #fixed-form, body[data-sheet="planned"] #planned-form, body[data-sheet="confirm"] #confirm-form { transform: none; }
 .theme-adventure .a-close {
   display: grid;
   place-items: center;

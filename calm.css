@@ -155,7 +155,7 @@
 .theme-calm button.secondary { border: 0; background: #eef0f8; color: var(--ink); border-radius: 16px; }
 .theme-calm input, .theme-calm select { background: #f3f5fa; border: 2px solid transparent; border-radius: 14px; font-weight: 600; }
 .theme-calm input:focus, .theme-calm select:focus { background: #fff; border-color: #5b6cff; box-shadow: 0 0 0 4px rgba(91, 108, 255, 0.15); }
-.theme-calm #expense-form { border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(30, 40, 90, 0.2); }
+.theme-calm #expense-form, .theme-calm .sheet { border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(30, 40, 90, 0.2); }
 .theme-calm .a-close { border: 0; background: #eef0f8; box-shadow: none; font-size: 20px; }
 .theme-calm .a-backdrop { background: rgba(27, 37, 64, 0.45); }
 
@@ -260,3 +260,21 @@
 
 /* 저녁(초과) 장면에서는 위쪽 작은 링크도 밝게 */
 .theme-calm body:has(.a-scene.lv-bad) button.link { color: rgba(255, 255, 255, 0.65); }
+
+/* ===== 달력 탭 ===== */
+.theme-calm .cal-cell { border: 0; background: #f3f5fa; border-radius: 12px; font-weight: 700; }
+.theme-calm .cal-cell.past { background: transparent; color: #b4bbd0; }
+.theme-calm .cal-cell.today { background: #5b6cff; color: #fff; border: 0; }
+.theme-calm .cal-cell.sel { outline: 3px solid rgba(91, 108, 255, 0.35); }
+.theme-calm .cal-cell.today .dot.spent { background: rgba(255, 255, 255, 0.7); }
+.theme-calm .dot.fix { background: #4f7cff; }
+.theme-calm .dot.big { background: #ff6b7c; }
+.theme-calm .cal-detail { background: #f3f5fa; border-radius: 16px; }
+.theme-calm button.mini { background: linear-gradient(135deg, #5b6cff, #8a5bff); }
+.theme-calm .sched .right small.ok { color: #1fa86a; }
+.theme-calm .add-row button.secondary { margin-top: 14px; font-weight: 700; font-size: 14px; padding: 13px 4px; }
+.theme-calm .tab.alert:after { background: #ff5a6a; }
+.theme-calm .cal-dow:nth-child(7) { color: #4f7cff; }
+
+/* "예산 다시 설정"은 오늘 탭에서만 (다른 탭에서는 카드와 겹치지 않게 숨김) */
+.theme-calm body:has(#tab-today[hidden]) .top { display: none; }

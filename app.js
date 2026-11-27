@@ -152,12 +152,23 @@ if (typeof document !== "undefined") {
 
   let state = load();
 
+  // 저장 형식: { budget, month, budgetStart, expenses, fixed, fixedActual, planned }
+  //  fixed: [{id, name, amount, day}]  매달 나가는 고정지출 (예정 금액, 결제일)
+  //  fixedActual: {"YYYY-MM": {고정지출id: 실제 금액}}  결제일에 확인한 실제 금액
+  //  planned: [{id, date, amount, memo}]  지출이 많을 것 같은 날과 예상 금액
+  // 이전 버전에서 저장한 데이터(위 세 항목이 없음)도 그대로 읽는다.
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved && typeof saved.budget === "number" && Array.isArray(saved.expenses)) return saved;
+      if (saved && typeof saved.budget === "number" && Array.isArray(saved.expenses)) {
+        if (!Array.isArray(saved.fixed)) saved.fixed = [];
+        if (!saved.fixedActual || typeof saved.fixedActual !== "object") saved.fixedActual = {};
+        if (!Array.isArray(saved.planned)) saved.planned = [];
+        if (!saved.budgetStart && saved.month) saved.budgetStart = saved.month + "-01";
+        return saved;
+      }
     } catch (e) { /* 저장 데이터가 깨졌으면 새로 시작 */ }
-    return { budget: null, month: null, expenses: [] };
+    return { budget: null, month: null, budgetStart: null, expenses: [], fixed: [], fixedActual: {}, planned: [] };
   }
 
   function save() {
@@ -189,7 +200,21 @@ if (typeof document !== "undefined") {
     $("setup").hidden = true;
     $("main").hidden = false;
 
-    const r = calculate(state.budget, state.expenses, today);
+    // 이번 달 고정지출과 예정된 지출을 미리 빼고 계산한다
+    const fixedItems = buildFixedItems(state.fixed, thisMonth, state.fixedActual, state.budgetStart);
+    const plannedItems = state.planned.filter((x) => x.date.startsWith(thisMonth));
+    const r = calculate(state.budget, state.expenses, today, { fixed: fixedItems, planned: plannedItems });
+
+    const fixedSum = fixedItems.reduce((s, x) => s + x.amount, 0);
+    const plannedSum = plannedItems.filter((x) => x.date >= today).reduce((s, x) => s + x.amount, 0);
+    const note = $("reserved-note");
+    const parts = [];
+    if (fixedSum > 0) parts.push(`고정지출 ${won(fixedSum)}`);
+    if (plannedSum > 0) parts.push(`예정된 지출 ${won(plannedSum)}`);
+    note.hidden = parts.length === 0;
+    note.textContent = parts.length ? `${parts.join(" · ")}을 미리 빼고 계산했어요.` : "";
+
+    renderCalendar(today, fixedItems, plannedItems);
 
     $("today-label").textContent = today.replace(/-/g, ".");
     $("today-limit").textContent = won(r.todayLimit);
@@ -334,12 +359,266 @@ if (typeof document !== "undefined") {
   }
 
   // 아래에서 올라오는 지출 입력창 (adventure 디자인에서만 사용)
-  function openSheet() { document.body.classList.add("sheet-open"); }
-  function closeSheet() { document.body.classList.remove("sheet-open"); }
-  $("a-fab").addEventListener("click", () => { resetForm(); render(); openSheet(); });
+  // name: "expense"(지출) | "fixed"(고정지출) | "planned"(지출 많은 날) | "confirm"(실제 금액 확인)
+  function openSheet(name) {
+    document.body.dataset.sheet = name || "expense";
+    document.body.classList.add("sheet-open");
+  }
+  function closeSheet() {
+    document.body.classList.remove("sheet-open");
+    delete document.body.dataset.sheet;
+    editingFixedId = null;
+    editingPlannedId = null;
+    confirmingFixedId = null;
+  }
+  $("a-fab").addEventListener("click", () => { resetForm(); render(); openSheet("expense"); });
   $("a-backdrop").addEventListener("click", closeSheet);
   $("sheet-close").addEventListener("click", () => { resetForm(); render(); closeSheet(); });
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeSheet(); });
+
+  // ===== 달력 탭: 고정지출과 지출이 많은 날 =====
+  let calSelected = null; // 달력에서 고른 날짜 "YYYY-MM-DD"
+  let editingFixedId = null;
+  let editingPlannedId = null;
+  let confirmingFixedId = null;
+  let calCtx = null; // 가장 최근 화면 그리기에 쓴 값
+
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const pad2 = (n) => String(n).padStart(2, "0");
+
+  function renderCalendar(today, fixedItems, plannedItems) {
+    calCtx = { today, fixedItems, plannedItems };
+    const [y, m] = today.split("-").map(Number);
+    const ym = today.slice(0, 7);
+    const total = daysInMonth(y, m);
+    $("cal-title").textContent = `${y}년 ${m}월`;
+    if (!calSelected || !calSelected.startsWith(ym)) calSelected = today;
+
+    // 달력 격자
+    const grid = $("cal-grid");
+    grid.innerHTML = "";
+    for (const n of ["일", "월", "화", "수", "목", "금", "토"]) grid.appendChild(el("div", "cal-dow", n));
+    for (let i = 0; i < new Date(y, m - 1, 1).getDay(); i++) grid.appendChild(el("div", "cal-cell empty"));
+    const fixedDates = new Set(fixedItems.map((f) => f.date));
+    const plannedDates = new Set(plannedItems.map((p) => p.date));
+    const spentDates = new Set(state.expenses.filter((e) => e.date.startsWith(ym)).map((e) => e.date));
+    for (let day = 1; day <= total; day++) {
+      const date = `${ym}-${pad2(day)}`;
+      const cell = el("button", "cal-cell" + (date < today ? " past" : "") + (date === today ? " today" : "") + (date === calSelected ? " sel" : ""));
+      cell.type = "button";
+      cell.appendChild(el("span", "cal-num", String(day)));
+      const marks = el("span", "cal-marks");
+      if (fixedDates.has(date)) marks.appendChild(el("i", "dot fix"));
+      if (plannedDates.has(date)) marks.appendChild(el("i", "dot big"));
+      if (spentDates.has(date)) marks.appendChild(el("i", "dot spent"));
+      cell.appendChild(marks);
+      cell.addEventListener("click", () => { calSelected = date; renderCalendar(today, fixedItems, plannedItems); });
+      grid.appendChild(cell);
+    }
+
+    // 고른 날짜의 설명
+    const detail = $("cal-detail");
+    detail.innerHTML = "";
+    const [, sm, sd] = calSelected.split("-").map(Number);
+    detail.appendChild(el("strong", "", `${sm}월 ${sd}일${calSelected === today ? " (오늘)" : ""}`));
+    const lines = [];
+    for (const f of fixedItems.filter((x) => x.date === calSelected)) lines.push(["fix", `${f.name} ${won(f.amount)}${f.confirmed ? " (확인함)" : " (예정)"}`]);
+    for (const p of plannedItems.filter((x) => x.date === calSelected)) lines.push(["big", `${p.memo || "지출 많은 날"} · 예상 ${won(p.amount)}`]);
+    const spent = state.expenses.filter((e) => e.date === calSelected).reduce((s, e) => s + e.amount, 0);
+    if (spent > 0) lines.push(["spent", `이 날 쓴 돈 ${won(spent)}`]);
+    if (lines.length === 0) detail.appendChild(el("p", "cal-line", "등록된 일정이 없어요."));
+    for (const [kind, text] of lines) {
+      const p = el("p", "cal-line");
+      p.append(el("i", "dot " + kind), " " + text);
+      detail.appendChild(p);
+    }
+    if (calSelected >= today) {
+      const add = el("button", "link", "이 날을 지출 많은 날로 등록");
+      add.type = "button";
+      add.addEventListener("click", () => openPlannedForm(null, calSelected));
+      detail.appendChild(add);
+    }
+
+    renderSchedule(today, ym);
+
+    // 결제일이 지났는데 실제 금액을 아직 확인 안 한 고정지출이 있으면 탭에 알림 점
+    const pending = fixedItems.filter((f) => f.date <= today && !f.confirmed).length;
+    document.querySelector('.tab[data-tab="calendar"]').classList.toggle("alert", pending > 0);
+  }
+
+  // 이번 달 일정 목록 (고정지출 + 지출 많은 날)
+  function renderSchedule(today, ym) {
+    const list = $("sched-list");
+    list.innerHTML = "";
+    const all = buildFixedItems(state.fixed, ym, state.fixedActual, null);
+    const rows = [];
+    for (const f of all) rows.push({ kind: "fixed", date: f.date, f });
+    for (const p of state.planned.filter((x) => x.date.startsWith(ym))) rows.push({ kind: "planned", date: p.date, p });
+    rows.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    $("sched-empty").hidden = rows.length > 0;
+
+    for (const row of rows) {
+      const li = el("li");
+      li.appendChild(el("span", "when", `${Number(row.date.slice(8, 10))}일`));
+      const what = el("span", "what");
+      const right = el("span", "right");
+      const actions = el("span", "actions");
+
+      if (row.kind === "fixed") {
+        const f = row.f;
+        const orig = state.fixed.find((x) => x.id === f.id);
+        const skipped = state.budgetStart && f.date < state.budgetStart;
+        what.append(el("i", "dot fix"), ` ${f.name}`);
+        const meta = [`매달 ${orig.day}일`];
+        if (Number(f.date.slice(8, 10)) !== orig.day) meta.push(`${Number(f.date.slice(8, 10))}일로 이동`);
+        if (skipped) meta.push("예산 입력 전이라 계산에서 제외");
+        what.appendChild(el("small", "", meta.join(" · ")));
+        right.appendChild(el("strong", "", won(f.amount)));
+        if (f.confirmed) right.appendChild(el("small", "ok", "✓ 실제 금액 확인함"));
+        else if (f.date <= today && !skipped) {
+          const b = el("button", "mini", "실제 금액 확인");
+          b.type = "button";
+          b.addEventListener("click", () => openConfirmForm(f.id));
+          right.appendChild(b);
+        } else right.appendChild(el("small", "", "예정"));
+        const edit = el("button", "", "수정"); edit.type = "button";
+        edit.addEventListener("click", () => openFixedForm(f.id));
+        const del = el("button", "danger", "삭제"); del.type = "button";
+        del.addEventListener("click", () => deleteFixed(f.id));
+        actions.append(edit, del);
+      } else {
+        const p = row.p;
+        what.append(el("i", "dot big"), ` ${p.memo || "지출 많은 날"}`);
+        what.appendChild(el("small", "", "지출 많은 날 · 예상 금액"));
+        right.appendChild(el("strong", "", won(p.amount)));
+        const edit = el("button", "", "수정"); edit.type = "button";
+        edit.addEventListener("click", () => openPlannedForm(p.id));
+        const del = el("button", "danger", "삭제"); del.type = "button";
+        del.addEventListener("click", () => deletePlanned(p.id));
+        actions.append(edit, del);
+      }
+      right.appendChild(actions);
+      li.append(what, right);
+      list.appendChild(li);
+    }
+  }
+
+  // --- 고정지출 폼 ---
+  function openFixedForm(id) {
+    const f = id ? state.fixed.find((x) => x.id === id) : null;
+    editingFixedId = f ? f.id : null;
+    $("fixed-title").textContent = f ? "고정지출 수정하기" : "고정지출 추가하기";
+    $("fixed-name").value = f ? f.name : "";
+    $("fixed-amount").value = f ? f.amount : "";
+    $("fixed-day").value = f ? f.day : "15";
+    showError($("fixed-error"), "");
+    openSheet("fixed");
+  }
+  $("add-fixed").addEventListener("click", () => openFixedForm(null));
+  $("fixed-form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const name = $("fixed-name").value.trim();
+    const amount = parseAmount($("fixed-amount").value);
+    const day = Number($("fixed-day").value);
+    if (!name) return showError($("fixed-error"), "이름을 입력해 주세요. (예: 통신비)");
+    if (!Number.isFinite(amount) || amount <= 0) return showError($("fixed-error"), "1원 이상의 금액을 입력해 주세요.");
+    if (!Number.isInteger(day) || day < 1 || day > 31) return showError($("fixed-error"), "결제일은 1~31 사이의 숫자로 입력해 주세요.");
+    if (editingFixedId !== null) {
+      const target = state.fixed.find((x) => x.id === editingFixedId);
+      if (target) Object.assign(target, { name, amount, day });
+    } else {
+      state.fixed.push({ id: Date.now(), name, amount, day });
+    }
+    save();
+    closeSheet();
+    render();
+  });
+  function deleteFixed(id) {
+    if (!confirm("이 고정지출을 삭제할까요?")) return;
+    state.fixed = state.fixed.filter((x) => x.id !== id);
+    for (const month of Object.keys(state.fixedActual)) delete state.fixedActual[month][id];
+    save();
+    render();
+  }
+
+  // --- 지출 많은 날 폼 ---
+  function openPlannedForm(id, presetDate) {
+    const p = id ? state.planned.find((x) => x.id === id) : null;
+    editingPlannedId = p ? p.id : null;
+    const today = toDateString(new Date());
+    const [y, m] = today.split("-").map(Number);
+    $("planned-title").textContent = p ? "지출 많은 날 수정하기" : "지출 많은 날 추가하기";
+    $("planned-memo").value = p ? p.memo : "";
+    $("planned-amount").value = p ? p.amount : "";
+    $("planned-date").value = p ? p.date : (presetDate && presetDate >= today ? presetDate : today);
+    $("planned-date").min = today;
+    $("planned-date").max = `${today.slice(0, 7)}-${pad2(daysInMonth(y, m))}`;
+    showError($("planned-error"), "");
+    openSheet("planned");
+  }
+  $("add-planned").addEventListener("click", () => openPlannedForm(null, calSelected));
+  $("planned-form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const today = toDateString(new Date());
+    const date = $("planned-date").value;
+    const amount = parseAmount($("planned-amount").value);
+    const memo = $("planned-memo").value.trim();
+    if (!date) return showError($("planned-error"), "날짜를 선택해 주세요.");
+    if (!date.startsWith(today.slice(0, 7))) return showError($("planned-error"), "이번 달 안의 날짜를 골라 주세요.");
+    if (date < today) return showError($("planned-error"), "오늘이나 앞으로의 날짜를 골라 주세요.");
+    if (!Number.isFinite(amount) || amount <= 0) return showError($("planned-error"), "1원 이상의 예상 금액을 입력해 주세요.");
+    if (editingPlannedId !== null) {
+      const target = state.planned.find((x) => x.id === editingPlannedId);
+      if (target) Object.assign(target, { date, amount, memo });
+    } else {
+      state.planned.push({ id: Date.now(), date, amount, memo });
+    }
+    save();
+    closeSheet();
+    render();
+  });
+  function deletePlanned(id) {
+    if (!confirm("이 일정을 삭제할까요?")) return;
+    state.planned = state.planned.filter((x) => x.id !== id);
+    save();
+    render();
+  }
+
+  // --- 결제일에 실제 금액 확인 ---
+  function openConfirmForm(id) {
+    const item = calCtx && calCtx.fixedItems.find((x) => x.id === id);
+    if (!item) return;
+    confirmingFixedId = id;
+    $("confirm-title").textContent = `${item.name} 실제 금액`;
+    $("confirm-hint").textContent = `${Number(item.date.slice(5, 7))}월에는 얼마가 나갔나요? 예정액은 ${won(item.amount)}이에요.`;
+    $("confirm-amount").value = item.amount;
+    showError($("confirm-error"), "");
+    openSheet("confirm");
+  }
+  function saveActual(id, amount) {
+    const ym = toDateString(new Date()).slice(0, 7);
+    if (!state.fixedActual[ym]) state.fixedActual[ym] = {};
+    state.fixedActual[ym][id] = amount;
+    save();
+    closeSheet();
+    render();
+  }
+  $("confirm-form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const amount = parseAmount($("confirm-amount").value);
+    if (!Number.isFinite(amount) || amount < 0) return showError($("confirm-error"), "금액을 숫자로 입력해 주세요.");
+    saveActual(confirmingFixedId, amount);
+  });
+  $("confirm-keep").addEventListener("click", () => {
+    const f = state.fixed.find((x) => x.id === confirmingFixedId);
+    if (f) saveActual(f.id, f.amount);
+  });
+  for (const id of ["fixed-close", "planned-close", "confirm-close"]) $(id).addEventListener("click", closeSheet);
 
   // 게임식 디자인용 표시 (코인 칸, 말풍선, 코스 진행). 기본 디자인에서는 숨겨져 있어 영향이 없다.
   let lastUsedCoins = null;
@@ -530,7 +809,7 @@ if (typeof document !== "undefined") {
     $("edit-cancel").hidden = false;
     showError($("expense-error"), "");
     showTab("today"); // 입력 폼이 "오늘" 탭에 있으므로 이동
-    openSheet();
+    openSheet("expense");
     render();
     $("expense-form").scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -553,6 +832,7 @@ if (typeof document !== "undefined") {
     showError($("budget-error"), "");
     state.budget = value;
     state.month = toDateString(new Date()).slice(0, 7);
+    state.budgetStart = toDateString(new Date()); // 이 날 이전에 나간 고정지출은 입력한 예산에 이미 반영된 것으로 본다
     save();
     render();
   });

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>오늘 쓸 수 있는 돈</title>
-  <link rel="stylesheet" href="style.css?v=20261127c">
-  <script>window.APP_VERSION = "20261127c";</script>
+  <link rel="stylesheet" href="style.css?v=20261127d">
+  <script>window.APP_VERSION = "20261127d";</script>
   <script>
     // 기본은 게임식 디자인(game). 주소 끝에 ?theme=toss | neon | fantasy | soft 를 붙이면 다른 디자인
     // neon / fantasy / soft 는 game.css(구조) 위에 자기 스타일 파일을 한 겹 더 입힌다.
@@ -147,10 +147,10 @@
         <div><span>오늘 쓴 돈</span><strong id="today-spent">0원</strong></div>
         <div><span>이번 달 남은 예산</span><strong id="month-left">0원</strong></div>
         <div><span>남은 일수(오늘 포함)</span><strong id="days-left">0일</strong></div>
+        <p id="reserved-note" class="reserved-note" hidden></p>
       </div>
 
       <button id="a-fab" type="button" class="a-only a-fab">＋ 지출 기록하기</button>
-      <div id="a-backdrop" class="a-only a-backdrop"></div>
       <form id="expense-form" class="card">
         <button id="sheet-close" type="button" class="a-only a-close" aria-label="닫기">×</button>
         <h2 id="form-title">지출 기록하기</h2>
@@ -169,6 +169,75 @@
         <button id="expense-submit" type="submit" class="primary">추가</button>
         <button id="edit-cancel" type="button" class="secondary" hidden>수정 취소</button>
       </form>
+      </div>
+
+      <div id="tab-calendar" class="tab-panel" hidden>
+        <div class="card">
+          <h2 id="cal-title">이번 달</h2>
+          <div id="cal-grid" class="cal-grid"></div>
+          <div class="cal-legend">
+            <span><i class="dot fix"></i> 고정지출</span>
+            <span><i class="dot big"></i> 지출 많은 날</span>
+            <span><i class="dot spent"></i> 쓴 날</span>
+          </div>
+          <div id="cal-detail" class="cal-detail"></div>
+        </div>
+
+        <div class="card">
+          <h2>이번 달 일정</h2>
+          <ul id="sched-list" class="sched"></ul>
+          <p id="sched-empty" class="hint">등록한 일정이 없어요. 매달 나가는 돈이나 친구 약속처럼 돈을 많이 쓸 날을 적어 두면, 그만큼을 미리 빼고 오늘 한도를 계산해 줘요.</p>
+          <div class="add-row">
+            <button id="add-fixed" type="button" class="secondary">＋ 고정지출 추가</button>
+            <button id="add-planned" type="button" class="secondary">＋ 지출 많은 날 추가</button>
+          </div>
+        </div>
+
+        <form id="fixed-form" class="card sheet">
+          <button id="fixed-close" type="button" class="a-only a-close" aria-label="닫기">×</button>
+          <h2 id="fixed-title">고정지출 추가하기</h2>
+          <label for="fixed-name">이름</label>
+          <input id="fixed-name" type="text" maxlength="12" placeholder="예: 통신비" autocomplete="off">
+          <label for="fixed-amount">예정 금액 (달마다 달라도 괜찮아요)</label>
+          <div class="input-row">
+            <input id="fixed-amount" type="text" inputmode="numeric" placeholder="예: 55000" autocomplete="off">
+            <span class="unit">원</span>
+          </div>
+          <label for="fixed-day">매달 몇 일에 나가요?</label>
+          <input id="fixed-day" type="number" inputmode="numeric" min="1" max="31" placeholder="예: 15">
+          <p class="hint" style="margin:8px 0 0">토·일이면 돌아오는 월요일로 옮겨요.</p>
+          <p id="fixed-error" class="error" hidden></p>
+          <button type="submit" class="primary">저장</button>
+        </form>
+
+        <form id="planned-form" class="card sheet">
+          <button id="planned-close" type="button" class="a-only a-close" aria-label="닫기">×</button>
+          <h2 id="planned-title">지출 많은 날 추가하기</h2>
+          <label for="planned-memo">무슨 날인가요? (선택)</label>
+          <input id="planned-memo" type="text" maxlength="20" placeholder="예: 친구 약속" autocomplete="off">
+          <label for="planned-date">날짜</label>
+          <input id="planned-date" type="date">
+          <label for="planned-amount">예상 금액</label>
+          <div class="input-row">
+            <input id="planned-amount" type="text" inputmode="numeric" placeholder="예: 30000" autocomplete="off">
+            <span class="unit">원</span>
+          </div>
+          <p id="planned-error" class="error" hidden></p>
+          <button type="submit" class="primary">저장</button>
+        </form>
+
+        <form id="confirm-form" class="card sheet">
+          <button id="confirm-close" type="button" class="a-only a-close" aria-label="닫기">×</button>
+          <h2 id="confirm-title">실제 금액</h2>
+          <p id="confirm-hint" class="hint"></p>
+          <div class="input-row">
+            <input id="confirm-amount" type="text" inputmode="numeric" autocomplete="off">
+            <span class="unit">원</span>
+          </div>
+          <p id="confirm-error" class="error" hidden></p>
+          <button type="submit" class="primary">이 금액으로 확인</button>
+          <button id="confirm-keep" type="button" class="secondary">예정액 그대로</button>
+        </form>
       </div>
 
       <div id="tab-history" class="tab-panel" hidden>
@@ -198,14 +267,17 @@
       </div>
       </div>
 
+      <div id="a-backdrop" class="a-only a-backdrop"></div>
+
       <nav class="tabbar" aria-label="화면 이동">
         <button type="button" class="tab on" data-tab="today">오늘</button>
+        <button type="button" class="tab" data-tab="calendar">달력</button>
         <button type="button" class="tab" data-tab="history">내역</button>
         <button type="button" class="tab" data-tab="stats">통계</button>
       </nav>
     </section>
 
   </main>
-  <script src="app.js?v=20261127c"></script>
+  <script src="app.js?v=20261127d"></script>
 </body>
 </html>
