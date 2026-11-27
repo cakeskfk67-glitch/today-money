@@ -177,7 +177,8 @@ if (typeof document !== "undefined") {
     run: { frames: ["run0", "run1", "run2", "run1"], ms: 110 },
     walk: { frames: ["walk0", "walk1", "walk2", "walk3", "walk4", "walk5", "walk6", "walk7"], ms: 140 },
     cheer: { frames: ["cheer0", "cheer1"], ms: 420 },
-    hurt: { frames: ["hurt"], ms: 0 },
+    hit: { frames: ["hit"], ms: 0 }, // 지출 직후 깜짝 놀람
+    sad: { frames: ["duck"], ms: 0 }, // 한도 초과: 웅크리고 속상한 표정
     idle: { frames: ["idle"], ms: 0 },
   };
   const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -262,7 +263,7 @@ if (typeof document !== "undefined") {
     $("a-track-hero").src = heroUrl("idle");
 
     // 캐릭터 동작: 오늘 안 썼으면 환호, 여유 있으면 달리기, 아슬아슬하면 걷기, 초과면 아야
-    if (!heroLock) setHeroMode(p.level === "bad" ? "hurt" : p.level === "warn" ? "walk" : r.spentToday === 0 ? "cheer" : "run");
+    if (!heroLock) setHeroMode(p.level === "bad" ? "sad" : p.level === "warn" ? "walk" : r.spentToday === 0 ? "cheer" : "run");
   }
 
   // 지출을 기록했을 때의 연출: 화면 흔들림 + "-금액" 떠오르기 + 캐릭터 아야
@@ -278,7 +279,7 @@ if (typeof document !== "undefined") {
     setTimeout(() => f.remove(), 1100);
     heroLock = true;
     heroMode = null;
-    setHeroMode("hurt");
+    setHeroMode("hit");
     setTimeout(() => { heroLock = false; render(); }, 700);
   }
 
