@@ -6,10 +6,10 @@
   <title>오늘 쓸 수 있는 돈</title>
   <link rel="stylesheet" href="style.css">
   <script>
-    // 주소 끝에 ?theme=game 을 붙이면 게임식 디자인, 없으면 기본(토스식)
+    // 기본은 게임식 디자인. 주소 끝에 ?theme=toss 를 붙이면 예전 토스식 디자인
     (function () {
       var t = new URLSearchParams(location.search).get("theme");
-      if (t === "game") {
+      if (t !== "toss") {
         document.documentElement.classList.add("theme-game");
         var link = document.createElement("link");
         link.rel = "stylesheet";
