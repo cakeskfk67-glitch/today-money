@@ -280,6 +280,20 @@ if (typeof document !== "undefined") {
     showError($("expense-error"), "");
   }
 
+  // 탭 전환 (오늘 / 내역 / 통계)
+  function showTab(name) {
+    for (const el of document.querySelectorAll(".tab-panel")) {
+      el.hidden = el.id !== "tab-" + name;
+    }
+    for (const btn of document.querySelectorAll(".tab")) {
+      btn.classList.toggle("on", btn.dataset.tab === name);
+    }
+    window.scrollTo(0, 0);
+  }
+  for (const btn of document.querySelectorAll(".tab")) {
+    btn.addEventListener("click", () => showTab(btn.dataset.tab));
+  }
+
   function startEdit(id) {
     const e = state.expenses.find((x) => x.id === id);
     if (!e) return;
@@ -292,6 +306,7 @@ if (typeof document !== "undefined") {
     $("expense-submit").textContent = "저장";
     $("edit-cancel").hidden = false;
     showError($("expense-error"), "");
+    showTab("today"); // 입력 폼이 "오늘" 탭에 있으므로 이동
     render();
     $("expense-form").scrollIntoView({ behavior: "smooth", block: "center" });
   }

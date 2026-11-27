@@ -219,3 +219,30 @@ h3 { font-size: 14px; color: var(--muted); margin: 18px 0 8px; font-weight: 600;
 .day-bar.zero { background: var(--line); }
 .day-bar.today { background: var(--primary); }
 .day-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* 하단 탭 (오늘 / 내역 / 통계) */
+.app { padding-bottom: 96px; }
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  flex: 1;
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-top: 3px solid transparent;
+}
+.tab.on { color: var(--primary); border-top-color: var(--primary); }

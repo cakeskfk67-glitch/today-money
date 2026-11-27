@@ -31,6 +31,7 @@
         <button id="reset-budget" class="link" type="button">예산 다시 설정</button>
       </header>
 
+      <div id="tab-today" class="tab-panel">
       <div class="card hero">
         <p class="hero-title">오늘 쓸 수 있는 돈</p>
         <p id="today-left" class="hero-amount">0원</p>
@@ -65,13 +66,17 @@
         <button id="expense-submit" type="submit" class="primary">추가</button>
         <button id="edit-cancel" type="button" class="secondary" hidden>수정 취소</button>
       </form>
+      </div>
 
+      <div id="tab-history" class="tab-panel" hidden>
       <div class="card">
         <h2>이번 달 지출</h2>
         <ul id="expense-list" class="list"></ul>
         <p id="empty-msg" class="hint">아직 기록한 지출이 없어요.</p>
       </div>
+      </div>
 
+      <div id="tab-stats" class="tab-panel" hidden>
       <div class="card" id="stats-card">
         <h2>이번 달 통계</h2>
         <p id="stats-empty" class="hint">지출을 기록하면 통계가 나와요.</p>
@@ -88,6 +93,13 @@
           <div id="day-axis" class="day-axis"><span>1일</span><span id="axis-mid"></span><span id="axis-last"></span></div>
         </div>
       </div>
+      </div>
+
+      <nav class="tabbar" aria-label="화면 이동">
+        <button type="button" class="tab on" data-tab="today">오늘</button>
+        <button type="button" class="tab" data-tab="history">내역</button>
+        <button type="button" class="tab" data-tab="stats">통계</button>
+      </nav>
     </section>
 
   </main>
